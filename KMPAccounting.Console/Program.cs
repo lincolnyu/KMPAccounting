@@ -65,8 +65,8 @@ class Program
         }
     }
 
-    private const string UnspecifiedExpenseAccount = "Expense.Unspecified";
-    private const string UnspecifiedIncomeAccount = "Income.Unspecified";
+    private const string UnspecifiedExpenseAccount = "Expense.ToBeSpecified";
+    private const string UnspecifiedIncomeAccount = "Income.ToBeSpecified";
 
     private static void CreateExpenseLedger(string accountName, bool isCredit, string inputFile, string outputFile)
     {
@@ -135,6 +135,7 @@ class Program
         }
 
         using var sw = new StreamWriter(outputFile);
-        ledger.SerializeToStream(sw);
+        sw.WriteLine("IndentedRemarks=true");
+        ledger.SerializeToStream(sw, true);
     }
 }

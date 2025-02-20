@@ -1,4 +1,5 @@
 ﻿using KMPAccounting.Objects.Accounts;
+using KMPAccounting.Objects.Serialization;
 using KMPCommon;
 using System;
 using System.Collections.Generic;
@@ -57,118 +58,6 @@ namespace KMPAccounting.Objects.BookKeeping
             }
 
             return false;
-        }
-
-        public static CompositeTransaction ParseLine(DateTime dateTime, string line)
-        {
-            var pt = new CompositeTransaction(dateTime);
-
-            int p = 0;
-            int newp;
-            {
-                line.GetNextWord('|', p, out newp, out string? debitedCountStr);
-                p = newp + 1;
-                if (debitedCountStr != null)
-                {
-                    var debitedCount = int.Parse(debitedCountStr);
-                    for (var i = 0; i < debitedCount; ++i)
-                    {
-                        line.GetNextWord('|', p, out newp, out var debited);
-                        p = newp + 1;
-                        line.GetNextWord('|', p, out newp, out var amountStr);
-                        p = newp + 1;
-                        var amount = amountStr != null ? decimal.Parse(amountStr) : 0;
-                        pt.Debited.Add((new AccountNodeReference(debited!), amount));
-                    }
-                }
-            }
-
-            {
-                line.GetNextWord('|', p, out newp, out string? creditedCountStr);
-                p = newp + 1;
-                if (creditedCountStr != null)
-                {
-                    var creditedCount = int.Parse(creditedCountStr);
-                    for (var i = 0; i < creditedCount; ++i)
-                    {
-                        line.GetNextWord('|', p, out newp, out var credited);
-                        p = newp + 1;
-                        line.GetNextWord('|', p, out newp, out var amountStr);
-                        p = newp + 1;
-                        var amount = amountStr != null ? decimal.Parse(amountStr) : 0;
-                        pt.Credited.Add((new AccountNodeReference(credited!), amount));
-                    }
-                }
-            }
-
-            if (line.GetNextWord('|', p, out _, out string? remarks))
-            {
-                pt.Remarks = remarks;
-            }
-
-            return pt;
-        }
-
-        public override string SerializeToLine()
-        {
-            var sb = new StringBuilder();
-
-            sb.Append(CsvUtility.TimestampToString(DateTime));
-            sb.Append("|");
-            sb.Append("CompositeTransaction|");
-
-            sb.Append($"{Debited.Count}|");
-            foreach (var (acc, amount) in Debited)
-            {
-                sb.Append(acc.FullName);
-                sb.Append("|");
-                sb.Append(amount);
-                sb.Append("|");
-            }
-
-            sb.Append($"{Credited.Count}|");
-            foreach (var (acc, amount) in Credited)
-            {
-                sb.Append(acc.FullName);
-                sb.Append("|");
-                sb.Append(amount);
-                sb.Append("|");
-            }
-
-            if (Remarks != null)
-            {
-                sb.Append($"{SerializationHelper.SerializeRemarks(Remarks)}");
-                sb.Append("|");
-            }
-
-            return sb.ToString();
-        }
-
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
-
-            sb.AppendLine(DateTime.ToShortDateOnlyString());
-            sb.AppendLine("Debit");
-
-            foreach (var (acc, amount) in Debited)
-            {
-                sb.AppendLine($"  {amount} to {acc.FullName}");
-            }
-
-            sb.AppendLine("Credit");
-
-            foreach (var (acc, amount) in Credited)
-            {
-                sb.AppendLine($"  {amount} to {acc.FullName}");
-            }
-
-            if (Remarks != null)
-            {
-                sb.AppendLine($"Remarks: {Remarks}");
-            }
-
-            return sb.ToString();
         }
 
         // The accounts being debited
@@ -233,6 +122,123 @@ namespace KMPAccounting.Objects.BookKeeping
                     node.Balance += amount;
                 }
             }
+        }
+
+        public static CompositeTransaction ParseLine(DateTime dateTime, string line)
+        {
+            var pt = new CompositeTransaction(dateTime);
+
+            int p = 0;
+            int newp;
+            {
+                line.GetNextWord('|', p, out newp, out string? debitedCountStr);
+                p = newp + 1;
+                if (debitedCountStr != null)
+                {
+                    var debitedCount = int.Parse(debitedCountStr);
+                    for (var i = 0; i < debitedCount; ++i)
+                    {
+                        line.GetNextWord('|', p, out newp, out var debited);
+                        p = newp + 1;
+                        line.GetNextWord('|', p, out newp, out var amountStr);
+                        p = newp + 1;
+                        var amount = amountStr != null ? decimal.Parse(amountStr) : 0;
+                        pt.Debited.Add((new AccountNodeReference(debited!), amount));
+                    }
+                }
+            }
+
+            {
+                line.GetNextWord('|', p, out newp, out string? creditedCountStr);
+                p = newp + 1;
+                if (creditedCountStr != null)
+                {
+                    var creditedCount = int.Parse(creditedCountStr);
+                    for (var i = 0; i < creditedCount; ++i)
+                    {
+                        line.GetNextWord('|', p, out newp, out var credited);
+                        p = newp + 1;
+                        line.GetNextWord('|', p, out newp, out var amountStr);
+                        p = newp + 1;
+                        var amount = amountStr != null ? decimal.Parse(amountStr) : 0;
+                        pt.Credited.Add((new AccountNodeReference(credited!), amount));
+                    }
+                }
+            }
+
+            if (line.GetNextWord('|', p, out _, out string? remarks))
+            {
+                pt.Remarks = remarks;
+            }
+
+            return pt;
+        }
+
+        public override void Serialize(StringBuilder sb, bool indentedRemarks)
+        {
+            sb.Append(CsvUtility.TimestampToString(DateTime));
+            sb.Append("|");
+            sb.Append("CompositeTransaction|");
+
+            sb.Append($"{Debited.Count}|");
+            foreach (var (acc, amount) in Debited)
+            {
+                sb.Append(acc.FullName);
+                sb.Append("|");
+                sb.Append(amount);
+                sb.Append("|");
+            }
+
+            sb.Append($"{Credited.Count}|");
+            foreach (var (acc, amount) in Credited)
+            {
+                sb.Append(acc.FullName);
+                sb.Append("|");
+                sb.Append(amount);
+                sb.Append("|");
+            }
+
+            if (Remarks != null)
+            {
+                if (indentedRemarks)
+                {
+                    SerializationHelper.SerializeIndentedRemarks(sb, Remarks, 1);
+                }
+                else
+                {
+                    sb.Append($"{SerializationHelper.SerializeRemarks(Remarks)}");
+                    sb.Append("|");
+                }
+            }
+
+            sb.AppendLine();
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+
+            sb.AppendLine(DateTime.ToShortDateOnlyString());
+            sb.AppendLine("Debit");
+
+            foreach (var (acc, amount) in Debited)
+            {
+                sb.AppendLine($"  {amount} to {acc.FullName}");
+            }
+
+            sb.AppendLine("Credit");
+
+            foreach (var (acc, amount) in Credited)
+            {
+                sb.AppendLine($"  {amount} to {acc.FullName}");
+            }
+
+            if (Remarks != null)
+            {
+                sb.AppendLine($"Remarks: {Remarks}");
+            }
+
+            return sb.ToString();
         }
     }
 }

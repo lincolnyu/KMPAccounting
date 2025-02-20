@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace KMPAccounting.Objects.BookKeeping
 {
@@ -19,6 +21,6 @@ namespace KMPAccounting.Objects.BookKeeping
         public abstract void Redo();
         public abstract void Undo();
 
-        public abstract string SerializeToLine();
+        public abstract void Serialize(StringBuilder sb, bool indentedRemarks);
     }
 }

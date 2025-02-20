@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using KMPAccounting.Objects.Serialization;
 
 namespace KMPAccounting.Objects.BookKeeping
 {
@@ -11,25 +13,28 @@ namespace KMPAccounting.Objects.BookKeeping
         /// </summary>
         public List<Entry> Entries { get; } = new List<Entry>();
 
-        public void SerializeToStream(StreamWriter sw)
+        public void SerializeToStream(StreamWriter sw, bool indentedRemarks)
         {
+            var sb = new StringBuilder();
             foreach (var entry in Entries)
             {
-                sw.WriteLine(entry.SerializeToLine());
+                entry.Serialize(sb, indentedRemarks);
             }
+            sw.Write(sb);
         }
 
-        public void DeserializeFromStream(StreamReader sr, bool append = false)
+        public void DeserializeFromStream(StreamReader sr, bool indentedRemarks, bool append = false)
         {
             if (!append)
             {
                 Entries.Clear();
             }
 
-            while (!sr.EndOfStream)
+            using var lineLoader = new LineLoader(sr);
+
+            while (lineLoader.PeekLine() != null)
             {
-                var line = sr.ReadLine();
-                var entry = EntryFactory.DeserializeFromLine(line);
+                var entry = EntryDeserializationFactory.DeserializeFromLine(lineLoader, indentedRemarks);
                 Entries.Add(entry);
             }
         }

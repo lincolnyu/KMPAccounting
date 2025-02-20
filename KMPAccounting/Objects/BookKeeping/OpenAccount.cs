@@ -59,10 +59,8 @@ namespace KMPAccounting.Objects.BookKeeping
             return new OpenAccount(dateTime, parentAndSide, name!);
         }
 
-        public override string SerializeToLine()
+        public override void Serialize(StringBuilder sb, bool indentedRemarks)
         {
-            var sb = new StringBuilder();
-
             sb.Append(CsvUtility.TimestampToString(DateTime));
             sb.Append("|");
             sb.Append("OpenAccount|");
@@ -77,7 +75,7 @@ namespace KMPAccounting.Objects.BookKeeping
                 sb.Append('|');
             }
 
-            return sb.ToString();
+            sb.AppendLine();
         }
 
         public override string ToString()
