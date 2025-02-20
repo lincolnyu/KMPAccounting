@@ -36,7 +36,7 @@ namespace KMPAccounting.Objects.Accounts
             sb.Append(' ', indentDepth * tabSize);
             var displayBalance = Side != sheetRootSide ? -Balance : Balance;
             var sideStr = Side == SideEnum.Debit ? "D" : "C";
-            sb.AppendLine($"{Name}({sideStr}) = {displayBalance}");
+            sb.Append($"{Name}({sideStr}) = {displayBalance}\n");
             if (Children.Count > 0)
             {
                 foreach (var (_, child) in Children.OrderBy(x => x.Key))

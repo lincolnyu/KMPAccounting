@@ -34,7 +34,7 @@ namespace KMPAccounting.Objects.BookKeeping
 
             while (lineLoader.PeekLine() != null)
             {
-                var entry = EntryDeserializationFactory.DeserializeFromLine(lineLoader, indentedRemarks);
+                var entry = EntryDeserializationFactory.Deserialize(lineLoader, indentedRemarks);
                 Entries.Add(entry);
             }
         }

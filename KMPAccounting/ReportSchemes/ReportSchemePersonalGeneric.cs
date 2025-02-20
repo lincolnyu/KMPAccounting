@@ -128,8 +128,8 @@ namespace KMPAccounting.ReportSchemes
 
                 pnlReport.CustomizedInfo = sb =>
                 {
-                    sb.AppendLine(
-                        $"Bracket = {{ Index = {tax.TaxBracketIndex}, Rate = {tax.TaxBracket.Rate}, Lower = {tax.TaxBracket.Lowerbound}, Upper = {tax.TaxBracket.Upperbound} }}");
+                    sb.Append(
+                        $"Bracket = {{ Index = {tax.TaxBracketIndex}, Rate = {tax.TaxBracket.Rate}, Lower = {tax.TaxBracket.Lowerbound}, Upper = {tax.TaxBracket.Upperbound} }}\n");
                 };
 
                 pnlReport.Tax += SelfDetails.TaxAdjustment;
@@ -137,8 +137,8 @@ namespace KMPAccounting.ReportSchemes
 
                 partnerPnlReport.CustomizedInfo = sb =>
                 {
-                    sb.AppendLine(
-                        $"Bracket = {{ Index = {partnerTax.TaxBracketIndex}, Rate = {partnerTax.TaxBracket.Rate}, Lower = {partnerTax.TaxBracket.Lowerbound}, Upper = {partnerTax.TaxBracket.Upperbound} }}");
+                    sb.Append(
+                        $"Bracket = {{ Index = {partnerTax.TaxBracketIndex}, Rate = {partnerTax.TaxBracket.Rate}, Lower = {partnerTax.TaxBracket.Lowerbound}, Upper = {partnerTax.TaxBracket.Upperbound} }}\n");
                 };
             }
             else
@@ -149,8 +149,8 @@ namespace KMPAccounting.ReportSchemes
 
                 pnlReport.CustomizedInfo = sb =>
                 {
-                    sb.AppendLine(
-                        $"Bracket = {{ Index = {tax.TaxBracketIndex}, Rate = {tax.TaxBracket.Rate}, Lower = {tax.TaxBracket.Lowerbound}, Upper = {tax.TaxBracket.Upperbound} }}");
+                    sb.Append(
+                        $"Bracket = {{ Index = {tax.TaxBracketIndex}, Rate = {tax.TaxBracket.Rate}, Lower = {tax.TaxBracket.Lowerbound}, Upper = {tax.TaxBracket.Upperbound} }}\n");
                 };
             }
 

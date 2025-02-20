@@ -75,25 +75,29 @@ namespace KMPAccounting.Objects.BookKeeping
                 sb.Append('|');
             }
 
-            sb.AppendLine();
+            sb.Append('\n');
         }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine(DateTime.ToShortDateOnlyString());
+            sb.Append(DateTime.ToShortDateOnlyString());
+            sb.Append('\n');
             var type = ParentAndSide == null
                 ? ""
                 : (ParentAndSide.Value.Item2 == AccountNode.SideEnum.Credit ? "Credit " : "Debit ");
             var fullName = AccountPath.Join(ParentAndSide?.Item1.FullName ?? string.Empty, Name);
-            sb.AppendLine($"Open {type}Account {fullName}");
+            sb.Append($"Open {type}Account {fullName}\n");
 
             return sb.ToString();
         }
 
         public (AccountNodeReference, AccountNode.SideEnum)? ParentAndSide { get; }
+
         public string Name { get; }
+
+        public string FullName => AccountPath.Join(ParentAndSide?.Item1.FullName ?? string.Empty, Name);
 
         public override void Redo()
         {

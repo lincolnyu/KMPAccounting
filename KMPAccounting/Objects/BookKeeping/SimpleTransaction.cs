@@ -149,19 +149,19 @@ namespace KMPAccounting.Objects.BookKeeping
             {
                 if (indentedRemarks)
                 {
-                    sb.AppendLine();
+                    sb.Append('\n');
                     SerializationHelper.SerializeIndentedRemarks(sb, Remarks, 1);
                 }
                 else
                 {
                     sb.Append($"{SerializationHelper.SerializeRemarks(Remarks)}");
                     sb.Append("|");
-                    sb.AppendLine();
+                    sb.Append('\n');
                 }
             }
             else
             {
-                sb.AppendLine();
+                sb.Append('\n');
             }
         }
 
@@ -169,16 +169,16 @@ namespace KMPAccounting.Objects.BookKeeping
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine(DateTime.ToShortDateOnlyString());
-            sb.AppendLine("Debit");
-            sb.AppendLine($"  {Amount} to {Debited.FullName}");
-
-            sb.AppendLine("Credit");
-            sb.AppendLine($"  {Amount} to {Credited.FullName}");
+            sb.Append(DateTime.ToShortDateOnlyString());
+            sb.Append('\n');
+            sb.Append("Debit\n");
+            sb.Append($"  {Amount} to {Debited.FullName}\n");
+            sb.Append("Credit\n");
+            sb.Append($"  {Amount} to {Credited.FullName}\n");
 
             if (Remarks != null)
             {
-                sb.AppendLine($"Remarks: {Remarks}");
+                sb.Append($"Remarks: {Remarks}\n");
             }
 
             return sb.ToString();

@@ -17,7 +17,8 @@ namespace KMPAccounting.Objects.Serialization
             foreach (var line in remarks.Split('\n'))
             {
                 sb.Append(' ', indentSize);
-                sb.AppendLine(line);
+                sb.Append(line);
+                sb.Append('\n');
             }
         }
 
@@ -44,12 +45,18 @@ namespace KMPAccounting.Objects.Serialization
 
                 if (line.Length > indentedSize && line.StartsWith(indentation))
                 {
-                    sb.AppendLine(line[indentedSize..]);
+                    sb.Append(line[indentedSize..]);
                 }
                 else
                 {
-                    sb.AppendLine(line.TrimStart());
+                    sb.Append(line.TrimStart());
                 }
+                sb.Append('\n');
+            }
+
+            if (sb.Length > 0)
+            {
+                sb.Length -= 1;  // Remove the last '\n'.
             }
             return sb.ToString();
         }

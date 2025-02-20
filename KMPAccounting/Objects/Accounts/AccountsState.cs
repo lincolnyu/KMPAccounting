@@ -57,13 +57,13 @@ namespace KMPAccounting.Objects.Accounts
                 }
             }
 
-            sb.AppendLine($"Debit = {debitBalance}");
+            sb.Append($"Debit = {debitBalance}\n");
             foreach (var node in debitNodes)
             {
                 sb.Append(node.ToString(node.Side, 1, tabSize));
             }
 
-            sb.AppendLine($"Credit = {creditBalance}");
+            sb.Append($"Credit = {creditBalance}\n");
             foreach (var node in creditNodes)
             {
                 sb.Append(node.ToString(node.Side, 1, tabSize));

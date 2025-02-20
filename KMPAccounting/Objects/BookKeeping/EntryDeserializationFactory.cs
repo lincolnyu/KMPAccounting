@@ -6,7 +6,7 @@ namespace KMPAccounting.Objects.BookKeeping
 {
     public class EntryDeserializationFactory
     {
-        public static Entry DeserializeFromLine(LineLoader lineLoader, bool indentedRemarks)
+        public static Entry Deserialize(LineLoader lineLoader, bool indentedRemarks)
         {
             var p = 0;
             var line = lineLoader.ReadLine();

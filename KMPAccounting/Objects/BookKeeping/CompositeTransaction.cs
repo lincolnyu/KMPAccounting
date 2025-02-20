@@ -211,31 +211,32 @@ namespace KMPAccounting.Objects.BookKeeping
                 }
             }
 
-            sb.AppendLine();
+            sb.Append('\n');
         }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine(DateTime.ToShortDateOnlyString());
-            sb.AppendLine("Debit");
+            sb.Append(DateTime.ToShortDateOnlyString());
+            sb.Append('\n');
+            sb.Append("Debit\n");
 
             foreach (var (acc, amount) in Debited)
             {
-                sb.AppendLine($"  {amount} to {acc.FullName}");
+                sb.Append($"  {amount} to {acc.FullName}\n");
             }
 
-            sb.AppendLine("Credit");
+            sb.Append("Credit\n");
 
             foreach (var (acc, amount) in Credited)
             {
-                sb.AppendLine($"  {amount} to {acc.FullName}");
+                sb.Append($"  {amount} to {acc.FullName}\n");
             }
 
             if (Remarks != null)
             {
-                sb.AppendLine($"Remarks: {Remarks}");
+                sb.Append($"Remarks: {Remarks}\n");
             }
 
             return sb.ToString();

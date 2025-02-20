@@ -23,13 +23,13 @@ namespace KMPAccounting.Objects.Reports
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine($"GrossIncome = Income + TaxWithheld = {Income} + {TaxWithheld} = {Income + TaxWithheld}");
-            sb.AppendLine(
-                $"TaxableIncome = GrossIncome - Deduction = {Income + TaxWithheld} - {Deduction} = {TaxableIncome}");
-            sb.AppendLine($"TaxWithheld = {TaxWithheld}");
-            sb.AppendLine($"Tax = {Tax}");
-            sb.AppendLine($"TaxReturn = {TaxReturn}");
-            sb.AppendLine($"PostTaxIncome = TaxableIncome - Tax = {PostTaxIncome}");
+            sb.Append($"GrossIncome = Income + TaxWithheld = {Income} + {TaxWithheld} = {Income + TaxWithheld}\n");
+            sb.Append(
+                $"TaxableIncome = GrossIncome - Deduction = {Income + TaxWithheld} - {Deduction} = {TaxableIncome}\n");
+            sb.Append($"TaxWithheld = {TaxWithheld}\n");
+            sb.Append($"Tax = {Tax}\n");
+            sb.Append($"TaxReturn = {TaxReturn}\n");
+            sb.Append($"PostTaxIncome = TaxableIncome - Tax = {PostTaxIncome}\n");
 
             CustomizedInfo?.Invoke(sb);
 

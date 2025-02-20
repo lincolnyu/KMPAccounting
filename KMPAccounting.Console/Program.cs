@@ -2,6 +2,7 @@
 using KMPAccounting.Objects;
 using KMPAccounting.Objects.Accounts;
 using KMPAccounting.Objects.BookKeeping;
+using KMPAccounting.Objects.Serialization;
 
 namespace KMPAccounting.Console;
 
@@ -11,7 +12,7 @@ class Program
     {
         string? cmd = null;
         string? accountName = null;
-        string? inputFile = null;
+        List<string> inputFiles = [];
         string? outputFile = null;
         bool isCredit = false;
 
@@ -28,7 +29,8 @@ class Program
                 }
                 else if (args[i] == "--input" && i + 1 < args.Length)
                 {
-                    inputFile = args[i + 1];
+                    var inputFile = args[i + 1];
+                    inputFiles.Add(inputFile);
                     i++;
                 }
                 else if (args[i] == "--output" && i + 1 < args.Length)
@@ -43,10 +45,9 @@ class Program
             }
         }
 
-        if (cmd == null || accountName == null || inputFile == null || outputFile == null)
+        if (cmd == null)
         {
-            System.Console.WriteLine(
-                "Usage: expenseledger --account <account> [credit] --input <inputfile> --output <outputfile>");
+            ShowUsage();
             return;
         }
 
@@ -54,8 +55,23 @@ class Program
         {
             switch (cmd)
             {
-                case "expenseledger":
-                    CreateExpenseLedger(accountName, isCredit, inputFile, outputFile);
+                case "expense":
+                    if (accountName == null || inputFiles.Count != 1 || outputFile == null)
+                    {
+                        ShowUsage();
+                        return;
+                    }
+
+                    CreateExpenseLedger(accountName, isCredit, inputFiles[0], outputFile);
+                    break;
+                case "merge":
+                    if (inputFiles.Count == 0 || outputFile == null)
+                    {
+                        ShowUsage();
+                        return;
+                    }
+
+                    Merge(inputFiles, outputFile);
                     break;
             }
         }
@@ -63,6 +79,14 @@ class Program
         {
             System.Console.WriteLine($"An error occurred: {ex.Message}");
         }
+    }
+
+    private static void ShowUsage()
+    {
+        System.Console.WriteLine(
+            "Usage: expense --account <account> [credit] --input <inputfile> --output <outputfile>");
+        System.Console.WriteLine(
+            "       merge --input <inputfile1> [--input <inputfile2> ...] --output <outputfile>");
     }
 
     private const string UnspecifiedExpenseAccount = "Expense.ToBeSpecified";
@@ -137,5 +161,49 @@ class Program
         using var sw = new StreamWriter(outputFile);
         sw.WriteLine("IndentedRemarks=true");
         ledger.SerializeToStream(sw, true);
+    }
+
+
+    private static void Merge(List<string> inputFiles, string outputFle)
+    {
+        Ledger? outputLedger = null;
+        foreach (var inputFile in inputFiles)
+        {
+            using var sr = new StreamReader(inputFile);
+
+            var line = sr.ReadLine();
+            if (line == null)
+            {
+                continue;
+            }
+
+            if (!line.StartsWith("IndentedRemarks="))
+            {
+                throw new ArgumentException("Ledger file must start with 'IndentedRemarks=<true/false>'.");
+            }
+
+            if (!bool.TryParse(line["IndentedRemarks=".Length..].Trim(), out var indentedRemarks))
+            {
+                throw new ArgumentException("Ledger file must start with 'IndentedRemarks=<true/false>'.");
+            }
+
+            var ledger = new Ledger();
+            ledger.DeserializeFromStream(sr, indentedRemarks);
+            if (outputLedger == null)
+            {
+                outputLedger = ledger;
+            }
+            else
+            {
+                outputLedger.MergeFrom(ledger);
+            }
+        }
+
+        if (outputLedger != null)
+        {
+            using var sw = new StreamWriter(outputFle);
+            sw.WriteLine("IndentedRemarks=true");
+            outputLedger.SerializeToStream(sw, true);
+        }
     }
 }

@@ -2,7 +2,7 @@
   "profiles": {
     "KMPAccounting.Console": {
       "commandName": "Project",
-      "commandLineArgs": "expenseledger --account Assets.Cash.Adb --input \"C:\\Users\\quanb\\OneDrive\\tagged\\store\\2402012306\\testdata\\FY24\\adbcash\\adbcash_balance.csv\" --output \"C:\\Users\\quanb\\OneDrive\\tagged\\store\\2402012306\\temp\\output.txt\""
+      "commandLineArgs": "merge --input \"C:\\Users\\quanb\\OneDrive\\tagged\\store\\2402012306\\temp\\output.txt\" --output \"C:\\Users\\quanb\\OneDrive\\tagged\\store\\2402012306\\temp\\output2.txt\""
     }
   }
 }
