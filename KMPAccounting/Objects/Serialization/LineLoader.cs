@@ -3,11 +3,9 @@ using System.IO;
 
 namespace KMPAccounting.Objects.Serialization
 {
-    public class LineLoader : IDisposable
+    public class LineLoader(TextReader textReader) : IDisposable
     {
-        public LineLoader(TextReader textReader) => TextReader = textReader;
-
-        public TextReader TextReader { get; }
+        public TextReader TextReader { get; } = textReader;
 
         private string? _loadedLine;
 

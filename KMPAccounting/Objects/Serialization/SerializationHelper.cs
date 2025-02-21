@@ -41,7 +41,7 @@ namespace KMPAccounting.Objects.Serialization
                 }
                 // Tolerant with any line that has nonzero indention.
 
-                lineLoader.ReadLine();  // Consume the line.
+                lineLoader.ReadLine(); // Consume the line.
 
                 if (line.Length > indentedSize && line.StartsWith(indentation))
                 {
@@ -51,13 +51,15 @@ namespace KMPAccounting.Objects.Serialization
                 {
                     sb.Append(line.TrimStart());
                 }
+
                 sb.Append('\n');
             }
 
             if (sb.Length > 0)
             {
-                sb.Length -= 1;  // Remove the last '\n'.
+                sb.Length -= 1; // Remove the last '\n'.
             }
+
             return sb.ToString();
         }
 

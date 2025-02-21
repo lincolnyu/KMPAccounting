@@ -5,49 +5,33 @@ using System.Collections.Generic;
 
 namespace KMPAccounting.ReportSchemes
 {
-    public class ReportSchemePersonalGeneric : ReportSchemeBase
+    public class ReportSchemePersonalGeneric(
+        ReportSchemePersonalGeneric.PersonalDetails selfDetails,
+        ReportSchemePersonalGeneric.PersonalDetails? partnerDetails = null)
+        : ReportSchemeBase
     {
-        public class PersonalDetails
+        public class PersonalDetails(AccountsSetup accountsSetup)
         {
-            /// <summary>
-            ///  Constructing the object
-            /// </summary>
-            /// <param name="stateName">Name of the accounts state of the person.</param>
-            /// <param name="taxReturnCashAccount">Suffix following Assets.Cash in the name of the account for tax return, with leading dot.</param>
-            /// <param name="equityDivisionName">A nonempty substring in the equity account for the person of a couple share the same accounts state, with leading dot.</param>
-            public PersonalDetails(AccountsSetup accountsSetup)
-            {
-                AccountsSetup = accountsSetup;
-            }
-
-            public AccountsSetup AccountsSetup { get; }
+            public AccountsSetup AccountsSetup { get; } = accountsSetup;
 
             public decimal NetIncomeAdjustment { get; set; } = 0m;
 
             /// <summary>
-            ///  Post income tax calculation adjustent, such as medicare levy etc.
+            ///  Post income tax calculation adjustment, such as medicare levy etc.
             /// </summary>
             public decimal TaxAdjustment { get; internal set; } = 0m;
         }
 
-        public class TaxBracket
+        public class TaxBracket(decimal rate, decimal lowerbound, decimal upperbound, decimal baseTax)
         {
-            public TaxBracket(decimal rate, decimal lowerbound, decimal upperbound, decimal baseTax)
-            {
-                Rate = rate;
-                Lowerbound = lowerbound;
-                Upperbound = upperbound;
-                BaseTax = baseTax;
-            }
-
             /// <summary>
             ///  Tax for every dollar
             /// </summary>
-            public decimal Rate { get; }
+            public decimal Rate { get; } = rate;
 
-            public decimal Lowerbound { get; }
-            public decimal Upperbound { get; }
-            public decimal BaseTax { get; }
+            public decimal Lowerbound { get; } = lowerbound;
+            public decimal Upperbound { get; } = upperbound;
+            public decimal BaseTax { get; } = baseTax;
 
             public decimal Calculate(decimal taxableIncome)
             {
@@ -89,12 +73,6 @@ namespace KMPAccounting.ReportSchemes
 
                 throw new ArgumentException($"Unable to find a tax bracket for income {taxableIncome}.");
             }
-        }
-
-        public ReportSchemePersonalGeneric(PersonalDetails selfDetails, PersonalDetails? partnerDetails = null)
-        {
-            SelfDetails = selfDetails;
-            PartnerDetails = partnerDetails;
         }
 
         public override void Start()
@@ -192,17 +170,17 @@ namespace KMPAccounting.ReportSchemes
 
             public override TaxBracket[] Brackets { get; } =
             {
-                new TaxBracket(0, 0, Bracket0UpperLimit, 0m),
-                new TaxBracket(Bracket1Rate, Bracket0UpperLimit, Bracket1UpperLimit, 0m),
-                new TaxBracket(Bracket2Rate, Bracket1UpperLimit, Bracket2UpperLimit, 5092m),
-                new TaxBracket(Bracket3Rate, Bracket2UpperLimit, Bracket3UpperLimit, 29467m),
-                new TaxBracket(Bracket4Rate, Bracket3UpperLimit, decimal.MaxValue, 51667m)
+                new(0, 0, Bracket0UpperLimit, 0m),
+                new(Bracket1Rate, Bracket0UpperLimit, Bracket1UpperLimit, 0m),
+                new(Bracket2Rate, Bracket1UpperLimit, Bracket2UpperLimit, 5092m),
+                new(Bracket3Rate, Bracket2UpperLimit, Bracket3UpperLimit, 29467m),
+                new(Bracket4Rate, Bracket3UpperLimit, decimal.MaxValue, 51667m)
             };
 
             public static DefaultTaxBrackets Instance { get; } = new DefaultTaxBrackets();
         }
 
-        public class PersonalTaxBrackets_FY2024 : DefaultTaxBrackets
+        public class PersonalTaxBracketsFy2024 : DefaultTaxBrackets
         {
             const decimal Bracket0UpperLimit = 18200;
             const decimal Bracket1UpperLimit = 45000;
@@ -216,14 +194,14 @@ namespace KMPAccounting.ReportSchemes
 
             public override TaxBracket[] Brackets { get; } =
             {
-                new TaxBracket(0, 0, Bracket0UpperLimit, 0m),
-                new TaxBracket(Bracket1Rate, Bracket0UpperLimit, Bracket1UpperLimit, 0m),
-                new TaxBracket(Bracket2Rate, Bracket1UpperLimit, Bracket2UpperLimit, 5092m),
-                new TaxBracket(Bracket3Rate, Bracket2UpperLimit, Bracket3UpperLimit, 29467m),
-                new TaxBracket(Bracket4Rate, Bracket3UpperLimit, decimal.MaxValue, 51667m)
+                new(0, 0, Bracket0UpperLimit, 0m),
+                new(Bracket1Rate, Bracket0UpperLimit, Bracket1UpperLimit, 0m),
+                new(Bracket2Rate, Bracket1UpperLimit, Bracket2UpperLimit, 5092m),
+                new(Bracket3Rate, Bracket2UpperLimit, Bracket3UpperLimit, 29467m),
+                new(Bracket4Rate, Bracket3UpperLimit, decimal.MaxValue, 51667m)
             };
 
-            public static new PersonalTaxBrackets_FY2024 Instance { get; } = new PersonalTaxBrackets_FY2024();
+            public new static PersonalTaxBracketsFy2024 Instance { get; } = new();
         }
 
         public static PersonalTaxOutcome GetPersonalTaxDefault(decimal taxableIncome)
@@ -241,11 +219,11 @@ namespace KMPAccounting.ReportSchemes
         /// </remarks>
         public static PersonalTaxOutcome GetPersonalTax_FY2024Stage3Cut(decimal taxableIncome)
         {
-            return PersonalTaxBrackets_FY2024.Instance.Calculate(taxableIncome);
+            return PersonalTaxBracketsFy2024.Instance.Calculate(taxableIncome);
         }
 
-        public PersonalDetails SelfDetails { get; }
+        public PersonalDetails SelfDetails { get; } = selfDetails;
 
-        public PersonalDetails? PartnerDetails { get; }
+        public PersonalDetails? PartnerDetails { get; } = partnerDetails;
     }
 }

@@ -10,11 +10,19 @@ namespace KMPAccounting.ReportSchemes
 {
     public class AccountsSetup
     {
+        /// <summary>
+        ///  Suffix following Assets.Cash in the name of the account for tax return, with leading dot.
+        /// </summary>
         public string? TaxReturnCashAccount { get; set; }
+
         public string? Income { get; set; }
+
         public string? Expense { get; set; }
+
         public string? Deduction { get; set; }
+
         public string? TaxWithheld { get; set; }
+
         public string? TaxReturn { get; set; }
 
         /// <summary>

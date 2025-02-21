@@ -8,7 +8,6 @@ namespace KMPAccounting.AccountImporting
         public decimal Amount { get; set; }
         public decimal? Balance { get; set; }
         public DateTime Date { get; set; }
-
         public string? CounterAccount { get; set; }
     }
 }

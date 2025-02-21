@@ -40,7 +40,7 @@ namespace KMPAccounting.AccountImporting
                 IndexOfDescription = GetIndex(headerLower, "description", "remarks", "comments"),
                 IndexOfAmount = GetIndex(headerLower, "amount", "debit/credit"),
                 IndexOfBalance = GetIndex(headerLower, "balance"),
-                IndexOfCounterAccount = GetIndex(headerLower, "counteraccount")
+                IndexOfCounterAccount = GetIndex(headerLower, "counteraccount", "counter account", "counter_account")
             };
 
             return descriptor;
@@ -59,6 +59,7 @@ namespace KMPAccounting.AccountImporting
             {
                 return result;
             }
+
             return decimal.Parse(amount.Replace("$", ""));
         }
 
@@ -87,8 +88,9 @@ namespace KMPAccounting.AccountImporting
                     Amount = ParseAmount(line[descriptor.IndexOfAmount]),
                     Balance = descriptor.IndexOfBalance >= 0 && descriptor.IndexOfBalance < line.Length
                         ? decimal.Parse(line[descriptor.IndexOfBalance])
-                        : (decimal?)null,
-                    CounterAccount = descriptor.IndexOfCounterAccount >= 0 && descriptor.IndexOfCounterAccount < line.Length
+                        : null,
+                    CounterAccount = descriptor.IndexOfCounterAccount >= 0 &&
+                                     descriptor.IndexOfCounterAccount < line.Length
                         ? line.ElementAtOrDefault(descriptor.IndexOfCounterAccount)
                         : null,
                 };

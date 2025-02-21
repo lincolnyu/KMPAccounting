@@ -133,7 +133,7 @@ namespace KMPAccounting.Objects
         {
             if (root.Children.Count > 0)
             {
-                foreach (var (k, v) in root.Children)
+                foreach (var (_, v) in root.Children)
                 {
                     foreach (var ln in GetAllLeafNodes(v))
                     {
@@ -209,7 +209,7 @@ namespace KMPAccounting.Objects
 
             if (split.Length == 2)
             {
-                ledger.EnsureCreateAccount(dateTime, state!, split[1], sideDifferToParent);
+                ledger.EnsureCreateAccount(dateTime, state, split[1], sideDifferToParent);
             }
         }
 
@@ -261,7 +261,7 @@ namespace KMPAccounting.Objects
 
             foreach (var (accountFullName, amount) in credited)
             {
-                transaction.Credited.Add((new AccountNodeReference(accountFullName)!, amount));
+                transaction.Credited.Add((new AccountNodeReference(accountFullName), amount));
             }
 
             return transaction;
