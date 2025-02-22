@@ -5,7 +5,7 @@ namespace KMPAccounting.Objects.Serialization
 {
     public static class SerializationHelper
     {
-        public static int IndentedSize = 2;
+        public static readonly int IndentedSize = 2;
 
         public static string SerializeRemarks(string remarks)
         {

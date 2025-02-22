@@ -1,12 +1,7 @@
 ﻿namespace KMPAccounting.Objects.AccountCreation
 {
-    public class AccountPath
+    public class AccountPath(string path)
     {
-        public AccountPath(string path)
-        {
-            Path = path;
-        }
-
         public static implicit operator AccountPath(string path)
         {
             return new AccountPath(path);
@@ -46,6 +41,6 @@
             return Path;
         }
 
-        public string Path { get; }
+        public string Path { get; } = path;
     }
 }

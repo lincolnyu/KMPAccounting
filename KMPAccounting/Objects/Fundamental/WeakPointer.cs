@@ -29,6 +29,7 @@
                 target = _handle.Target;
                 return true;
             }
+
             target = default;
             return false;
         }

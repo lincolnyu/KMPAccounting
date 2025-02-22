@@ -10,8 +10,8 @@ namespace KMPAccounting.Objects
         {
             // TODO inconsistent accounts (accounts with the same name but different properties)
 
-            int i = 0;
-            int j = 0;
+            var i = 0;
+            var j = 0;
             var addedAccount = new HashSet<string>();
 
             while (true)

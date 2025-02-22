@@ -2,25 +2,24 @@
 using KMPAccounting.Objects;
 using KMPAccounting.Objects.Accounts;
 using KMPAccounting.Objects.BookKeeping;
-using KMPAccounting.Objects.Serialization;
 
 namespace KMPAccounting.Console;
 
-class Program
+internal class Program
 {
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
         string? cmd = null;
         string? accountName = null;
         List<string> inputFiles = [];
         string? outputFile = null;
-        bool isCredit = false;
+        var isCredit = false;
 
         if (args.Length > 0)
         {
             cmd = args[0];
 
-            for (int i = 1; i < args.Length; i++)
+            for (var i = 1; i < args.Length; i++)
             {
                 if (args[i] == "--account" && i + 1 < args.Length)
                 {

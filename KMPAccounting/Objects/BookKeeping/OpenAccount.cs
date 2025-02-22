@@ -6,16 +6,13 @@ using System.Text;
 
 namespace KMPAccounting.Objects.BookKeeping
 {
-    public class OpenAccount : Entry
+    public class OpenAccount(
+        DateTime dateTime,
+        (AccountNodeReference, AccountNode.SideEnum)? parentAndSide,
+        string name)
+        : Entry(dateTime)
     {
-        public OpenAccount(DateTime dateTime, (AccountNodeReference, AccountNode.SideEnum)? parentAndSide, string name)
-            : base(dateTime)
-        {
-            ParentAndSide = parentAndSide;
-            Name = name;
-        }
-
-        public override bool Equals(Entry other)
+        public override bool Equals(Entry? other)
         {
             if (other is OpenAccount otherOa)
             {
@@ -93,9 +90,9 @@ namespace KMPAccounting.Objects.BookKeeping
             return sb.ToString();
         }
 
-        public (AccountNodeReference, AccountNode.SideEnum)? ParentAndSide { get; }
+        public (AccountNodeReference, AccountNode.SideEnum)? ParentAndSide { get; } = parentAndSide;
 
-        public string Name { get; }
+        public string Name { get; } = name;
 
         public string FullName => AccountPath.Join(ParentAndSide?.Item1.FullName ?? string.Empty, Name);
 

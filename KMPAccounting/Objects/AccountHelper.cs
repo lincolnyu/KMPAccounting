@@ -104,7 +104,7 @@ namespace KMPAccounting.Objects
             var balanceA = a.Balance;
             var balanceB = b.Balance;
 
-            if (balanceA == 0 || balanceA == 0) return false; // No need to do it
+            if (balanceA == 0 || balanceB == 0) return false; // No need to do it
 
             var debitA = (balanceA > 0) ^ (a.Side == AccountNode.SideEnum.Debit);
             var debitB = (balanceB > 0) ^ (b.Side == AccountNode.SideEnum.Debit);
@@ -226,7 +226,8 @@ namespace KMPAccounting.Objects
             {
                 return CreateTransaction(dateTime, debitedAccountFullName, creditedAccountFullName, amount, remarks);
             }
-            else if (amount < 0)
+
+            if (amount < 0)
             {
                 return CreateTransaction(dateTime, creditedAccountFullName, debitedAccountFullName, -amount, remarks);
             }
@@ -236,7 +237,7 @@ namespace KMPAccounting.Objects
 
         public static SimpleTransaction CreateTransaction(DateTime dateTime, string debitedAccountFullName,
             string creditedAccountFullName, decimal amount, string? remarks = null)
-            => new SimpleTransaction(dateTime, new AccountNodeReference(debitedAccountFullName),
+            => new(dateTime, new AccountNodeReference(debitedAccountFullName),
                 new AccountNodeReference(creditedAccountFullName), amount) { Remarks = remarks };
 
         public static void AddAndExecuteTransaction(this Ledger? ledger, DateTime dateTime,

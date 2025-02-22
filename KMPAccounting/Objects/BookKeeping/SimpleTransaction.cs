@@ -6,18 +6,14 @@ using KMPCommon;
 
 namespace KMPAccounting.Objects.BookKeeping
 {
-    public class SimpleTransaction : Entry
+    public class SimpleTransaction(
+        DateTime dateTime,
+        AccountNodeReference debited,
+        AccountNodeReference credited,
+        decimal amount)
+        : Entry(dateTime)
     {
-        public SimpleTransaction(DateTime dateTime, AccountNodeReference debited, AccountNodeReference credited,
-            decimal amount)
-            : base(dateTime)
-        {
-            Debited = debited;
-            Credited = credited;
-            Amount = amount;
-        }
-
-        public override bool Equals(Entry other)
+        public override bool Equals(Entry? other)
         {
             if (other is SimpleTransaction otherT)
             {
@@ -48,12 +44,12 @@ namespace KMPAccounting.Objects.BookKeeping
         }
 
         // The account being debited
-        public AccountNodeReference Debited { get; set; }
+        public AccountNodeReference Debited { get; set; } = debited;
 
         // The account being credited
-        public AccountNodeReference Credited { get; set; }
+        public AccountNodeReference Credited { get; set; } = credited;
 
-        public decimal Amount { get; set; }
+        public decimal Amount { get; set; } = amount;
 
         public override void Redo()
         {

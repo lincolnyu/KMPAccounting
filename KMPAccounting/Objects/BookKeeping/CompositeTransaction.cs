@@ -7,14 +7,9 @@ using System.Text;
 
 namespace KMPAccounting.Objects.BookKeeping
 {
-    public class CompositeTransaction : Entry
+    public class CompositeTransaction(DateTime dateTime) : Entry(dateTime)
     {
-        public CompositeTransaction(DateTime dateTime)
-            : base(dateTime)
-        {
-        }
-
-        public override bool Equals(Entry other)
+        public override bool Equals(Entry? other)
         {
             if (other is CompositeTransaction otherPt)
             {
@@ -61,10 +56,10 @@ namespace KMPAccounting.Objects.BookKeeping
         }
 
         // The accounts being debited
-        public List<(AccountNodeReference, decimal)> Debited { get; } = new List<(AccountNodeReference, decimal)>();
+        public List<(AccountNodeReference, decimal)> Debited { get; } = [];
 
         // The accounts being credited
-        public List<(AccountNodeReference, decimal)> Credited { get; } = new List<(AccountNodeReference, decimal)>();
+        public List<(AccountNodeReference, decimal)> Credited { get; } = [];
 
         public override void Redo()
         {
@@ -177,25 +172,25 @@ namespace KMPAccounting.Objects.BookKeeping
         public override void Serialize(StringBuilder sb, bool indentedRemarks)
         {
             sb.Append(CsvUtility.TimestampToString(DateTime));
-            sb.Append("|");
+            sb.Append('|');
             sb.Append("CompositeTransaction|");
 
             sb.Append($"{Debited.Count}|");
             foreach (var (acc, amount) in Debited)
             {
                 sb.Append(acc.FullName);
-                sb.Append("|");
+                sb.Append('|');
                 sb.Append(amount);
-                sb.Append("|");
+                sb.Append('|');
             }
 
             sb.Append($"{Credited.Count}|");
             foreach (var (acc, amount) in Credited)
             {
                 sb.Append(acc.FullName);
-                sb.Append("|");
+                sb.Append('|');
                 sb.Append(amount);
-                sb.Append("|");
+                sb.Append('|');
             }
 
             if (Remarks != null)
@@ -207,7 +202,7 @@ namespace KMPAccounting.Objects.BookKeeping
                 else
                 {
                     sb.Append($"{SerializationHelper.SerializeRemarks(Remarks)}");
-                    sb.Append("|");
+                    sb.Append('|');
                 }
             }
 

@@ -6,7 +6,7 @@ using KMPAccounting.Objects.Fundamental;
 
 namespace KMPAccounting.Objects.Accounts
 {
-    public class AccountNode : WeakPointed<AccountNode>
+    public class AccountNode(AccountNode.SideEnum side, string name) : WeakPointed<AccountNode>
     {
         public enum SideEnum
         {
@@ -17,12 +17,6 @@ namespace KMPAccounting.Objects.Accounts
         public static SideEnum GetOppositeSide(SideEnum side)
         {
             return side == SideEnum.Credit ? SideEnum.Debit : SideEnum.Credit;
-        }
-
-        public AccountNode(SideEnum side, string name)
-        {
-            Side = side;
-            Name = name;
         }
 
         public string ToString(SideEnum sheetRootSide, int indentDepth, int tabSize, bool showZeroBranches = false)
@@ -69,9 +63,9 @@ namespace KMPAccounting.Objects.Accounts
             base.Dispose();
         }
 
-        public SideEnum Side { get; }
+        public SideEnum Side { get; } = side;
 
-        public string Name { get; set; }
+        public string Name { get; set; } = name;
 
         // Note: This uniquely identifies the account node systemwide.
         public string FullName => Parent != null ? Parent.FullName + "." + Name : Name;

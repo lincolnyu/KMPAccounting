@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace KMPAccounting.ReportSchemes
 {
-    public class ReportSchemeBusinessGeneric : ReportSchemeBase
+    public class ReportSchemeBusinessGeneric(ReportSchemeBusinessGeneric.BusinessDetails details) : ReportSchemeBase
     {
         public class BusinessDetails
         {
@@ -20,25 +20,20 @@ namespace KMPAccounting.ReportSchemes
             public AccountsSetup AccountsSetup { get; }
         }
 
-        public ReportSchemeBusinessGeneric(BusinessDetails details)
-        {
-            _details = details;
-        }
-
         public override void Start()
         {
-            _details.AccountsSetup.InitializeTaxPeriod();
+            details.AccountsSetup.InitializeTaxPeriod();
         }
 
         public override IEnumerable<PnlReport> Stop()
         {
             var pnlReport = new PnlReport();
 
-            _details.AccountsSetup.FinalizeTaxPeriodPreTaxCalculation(pnlReport);
+            details.AccountsSetup.FinalizeTaxPeriodPreTaxCalculation(pnlReport);
 
             pnlReport.Tax = GetBusinessTax(pnlReport.TaxableIncome);
 
-            _details.AccountsSetup.FinalizeTaxPeriodPostTaxCalculation(pnlReport);
+            details.AccountsSetup.FinalizeTaxPeriodPostTaxCalculation(pnlReport);
 
             yield return pnlReport;
         }
@@ -53,7 +48,5 @@ namespace KMPAccounting.ReportSchemes
             // TODO Update this to the correct.
             return taxableIncome * lowerRate;
         }
-
-        private readonly BusinessDetails _details;
     }
 }

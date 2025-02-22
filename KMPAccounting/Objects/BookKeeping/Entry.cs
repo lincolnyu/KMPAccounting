@@ -1,22 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace KMPAccounting.Objects.BookKeeping
 {
-    public abstract class Entry : IEquatable<Entry>
+    public abstract class Entry(DateTime dateTime) : IEquatable<Entry>
     {
-        protected Entry(DateTime dateTime)
-        {
-            DateTime = dateTime;
-        }
-
         // When the transaction occurs
-        public DateTime DateTime { get; }
+        public DateTime DateTime { get; } = dateTime;
 
         public string? Remarks { get; set; }
 
-        public abstract bool Equals(Entry other);
+        public abstract bool Equals(Entry? other);
 
         public abstract void Redo();
         public abstract void Undo();

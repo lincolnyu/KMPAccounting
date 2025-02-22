@@ -9,7 +9,7 @@ namespace KMPAccounting.Objects.BookKeeping
     public class Ledger : IEquatable<Ledger>
     {
         /// <summary>
-        ///  All systemwide accounting entries sorted in chronicle order
+        ///  All system-wide accounting entries sorted in chronicle order
         /// </summary>
         public List<Entry> Entries { get; } = new List<Entry>();
 
@@ -39,9 +39,9 @@ namespace KMPAccounting.Objects.BookKeeping
             }
         }
 
-        public bool Equals(Ledger other)
+        public bool Equals(Ledger? other)
         {
-            if (Entries.Count != other.Entries.Count)
+            if (Entries.Count != other?.Entries.Count)
             {
                 return false;
             }

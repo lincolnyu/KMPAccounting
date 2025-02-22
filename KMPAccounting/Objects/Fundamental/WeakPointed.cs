@@ -1,4 +1,5 @@
 ﻿using System;
+using static System.GC;
 
 namespace KMPAccounting.Objects.Fundamental
 {
@@ -24,7 +25,7 @@ namespace KMPAccounting.Objects.Fundamental
 
             if (disposing)
             {
-                GC.SuppressFinalize(this);
+                SuppressFinalize(this);
             }
         }
 

@@ -3,14 +3,9 @@ using System;
 
 namespace KMPAccounting.Objects.Accounts
 {
-    public class AccountNodeReference : IEquatable<AccountNodeReference>
+    public class AccountNodeReference(string fullName) : IEquatable<AccountNodeReference>
     {
-        public AccountNodeReference(string fullName)
-        {
-            FullName = fullName;
-        }
-
-        public bool Equals(AccountNodeReference other)
+        public bool Equals(AccountNodeReference? other)
         {
             return FullName.Equals(other.FullName);
         }
@@ -21,7 +16,7 @@ namespace KMPAccounting.Objects.Accounts
         }
 
         // Including the states name as the root.
-        public string FullName { get; }
+        public string FullName { get; } = fullName;
 
         public AccountNode? Get()
         {
