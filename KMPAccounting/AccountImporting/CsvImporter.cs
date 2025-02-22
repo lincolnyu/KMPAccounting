@@ -87,7 +87,7 @@ namespace KMPAccounting.AccountImporting
                         : null,
                     Amount = ParseAmount(line[descriptor.IndexOfAmount]),
                     Balance = descriptor.IndexOfBalance >= 0 && descriptor.IndexOfBalance < line.Length
-                        ? decimal.Parse(line[descriptor.IndexOfBalance])
+                        ? ParseAmount(line[descriptor.IndexOfBalance])
                         : null,
                     CounterAccount = descriptor.IndexOfCounterAccount >= 0 &&
                                      descriptor.IndexOfCounterAccount < line.Length

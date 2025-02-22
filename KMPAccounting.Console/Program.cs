@@ -2,6 +2,7 @@
 using KMPAccounting.Objects;
 using KMPAccounting.Objects.Accounts;
 using KMPAccounting.Objects.BookKeeping;
+using KOU = KMPAccounting.Objects.AccountHelper;
 
 namespace KMPAccounting.Console;
 
@@ -95,7 +96,17 @@ internal class Program
     {
         var csvImporter = new CsvImporter();
         using var srCsv = new StreamReader(inputFile);
-        var transactions = csvImporter.GuessColumnsAndImport(srCsv, inputFile).OrderBy(x => x.Date).ToArray();
+        var arr = csvImporter.GuessColumnsAndImport(srCsv, inputFile).ToArray();
+        Transaction[] transactions = [];
+        if (arr.Length > 1 && arr[0].Date > arr[^1].Date)
+        {
+            transactions = arr.Reverse().ToArray();
+        }
+        else
+        {
+            transactions = arr;
+        }
+
 
         AccountsState.Clear();
         var ledger = new Ledger();
@@ -109,7 +120,7 @@ internal class Program
         {
             if (transaction.CounterAccount == null)
             {
-                var isExpense = transaction.Amount > 0 ^ !isCredit;
+                var isExpense = transaction.Amount < 0;
                 transaction.CounterAccount = isExpense ? UnspecifiedExpenseAccount : UnspecifiedIncomeAccount;
             }
 
@@ -121,9 +132,19 @@ internal class Program
             }
         }
 
+        decimal? balanceTracker = null;
         foreach (var transaction in transactions)
         {
             var amount = transaction.Amount;
+            var balance = transaction.Balance;
+
+            // Note: Assuming credit account amounts and balances are negative
+            if (isCredit)
+            {
+                amount = -amount;
+                balance = -balance;
+            }
+
             var date = transaction.Date;
             if (isCredit)
             {
@@ -153,6 +174,27 @@ internal class Program
                     // expense
                     ledger.AddAndExecuteTransaction(date, transaction.CounterAccount!, accountName, -amount,
                         transaction.Description);
+                }
+            }
+
+            if (balanceTracker != null)
+            {
+                balanceTracker += amount;
+            }
+
+            if (balance.HasValue)
+            {
+                if (balanceTracker != null)
+                {
+                    if (balanceTracker.Value != balance.Value)
+                    {
+                        System.Console.WriteLine(
+                            $"Error: Balance verification failed. Expected {balance.Value}, actual {KOU.GetAccount(accountName)!.Balance}.");
+                    }
+                }
+                else
+                {
+                    balanceTracker = balance;
                 }
             }
         }
