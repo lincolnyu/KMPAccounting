@@ -10,13 +10,14 @@ namespace KMPAccounting.ReportSchemes
 
         public const string Cash = "Assets.Cash";
 
-        public const string Income = "Equity.Income";               // Credit
-        public const string TaxReturn = "Equity.TaxReturn";         // Credit
+        public const string Income = "Income";                              // Credit
+        public const string TaxReturn = "TaxReturn";                        // Credit
+        public const string TaxWithheld = "TaxWithheld";                    // Tax withheld credit side, always equal to TaxWithheldTaxOffice.
 
-        public const string Deduction = "Equity.Deduction";         // Debit
-        public const string Expense = "Equity.Expense";             // Debit
+        public const string Deduction = "Deduction";                        // Debit
+        public const string Expense = "Expense";                            // Debit
+        public const string TaxWithheldTaxOffice = "TaxWithheldTaxOffice";  // Tax withheld debit side, always equal to TaxWithheld.
 
-        public const string TaxWithheld = "Liability.TaxWithheld";  // Credit
 
         public static readonly string EquityMain = $"Equity.{Objects.Constants.MainNodeName}";
 
