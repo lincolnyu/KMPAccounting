@@ -23,19 +23,19 @@ namespace KMPAccounting.Objects.AccountCreation
                 {
                     if (x.GetCustomAttribute<IsNotAccountAttribute>() != null) return false;
                     if (x.PropertyType != typeof(string) && x.PropertyType != typeof(AccountPath)) return false;
-                    return o != null || x.GetGetMethod().IsStatic;
-                }).Select(x => (x.GetValue(o).ToString(), x.GetCustomAttribute<OppositeToParentAttribute>() != null))
+                    return o != null || (x?.GetGetMethod()?.IsStatic??false);
+                }).Select(x => (x?.GetValue(o)?.ToString(), x?.GetCustomAttribute<OppositeToParentAttribute>() != null))
                 .Concat(t.GetFields().Where(x =>
                 {
                     if (x.GetCustomAttribute<IsNotAccountAttribute>() != null) return false;
                     if (x.FieldType != typeof(string) && x.FieldType != typeof(AccountPath)) return false;
                     return o != null || x.IsStatic;
-                }).Select(x => (x.GetValue(o).ToString(), x.GetCustomAttribute<OppositeToParentAttribute>() != null)))
+                }).Select(x => (x?.GetValue(o)?.ToString(), x?.GetCustomAttribute<OppositeToParentAttribute>() != null)))
                 .OrderBy(pair => pair.Item1);
 
             foreach (var (accountPath, oppositeToParent) in allItems)
             {
-                ledger.EnsureCreateAccount(dateTime, accountPath, oppositeToParent);
+                ledger.EnsureCreateAccount(dateTime, accountPath!, oppositeToParent);
             }
         }
     }

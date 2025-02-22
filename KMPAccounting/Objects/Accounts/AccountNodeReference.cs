@@ -7,7 +7,7 @@ namespace KMPAccounting.Objects.Accounts
     {
         public bool Equals(AccountNodeReference? other)
         {
-            return FullName.Equals(other.FullName);
+            return FullName.Equals(other?.FullName);
         }
 
         public override string ToString()
