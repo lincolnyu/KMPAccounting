@@ -132,6 +132,8 @@ internal class Program
                 ? SideOptionEnum.AllCredit
                 : SideOptionEnum.AllDebit));
 
+        System.Diagnostics.Debug.Assert(GetAccount(mainAccount)!.Balance==0);
+
         var addedAccount = new HashSet<string>();
         foreach (var transaction in transactions)
         {
@@ -150,10 +152,9 @@ internal class Program
             {
                 var isCounterAccountCredit = StandardAccounts.GetAccountIsCredit(transaction.CounterAccount);
                 ledger.EnsureCreateAccount(accountCreationDate, transaction.CounterAccount,
-                    GetChooseSideFunc(isCounterAccountCredit
-                        ? SideOptionEnum.AllCredit
-                        : SideOptionEnum.AllDebit)); /* It has to be expense*/
+                    GetChooseSideFunc(isCounterAccountCredit ? SideOptionEnum.AllCredit : SideOptionEnum.AllDebit)); /* It has to be expense*/
                 addedAccount.Add(transaction.CounterAccount);
+                System.Diagnostics.Debug.Assert(GetAccount(transaction.CounterAccount)!.Balance == 0);
             }
         }
 
