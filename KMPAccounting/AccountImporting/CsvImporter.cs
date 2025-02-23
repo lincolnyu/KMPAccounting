@@ -53,14 +53,19 @@ namespace KMPAccounting.AccountImporting
             return Import(sr, descriptor, sourceReference);
         }
 
-        private static decimal ParseAmount(string amount)
+        private static decimal? ParseAmount(string amount)
         {
             if (decimal.TryParse(amount, out var result))
             {
                 return result;
             }
 
-            return decimal.Parse(amount.Replace("$", ""));
+            if (decimal.TryParse(amount.Replace("$", ""), out result))
+            {
+                return result;
+            }
+
+            return null;
         }
 
         public IEnumerable<Transaction> Import(StreamReader sr, CsvDescriptor descriptor, string sourceReference)
@@ -85,7 +90,7 @@ namespace KMPAccounting.AccountImporting
                     Description = descriptor.IndexOfDescription >= 0 && descriptor.IndexOfDescription < line.Length
                         ? line.ElementAtOrDefault(descriptor.IndexOfDescription)
                         : null,
-                    Amount = ParseAmount(line[descriptor.IndexOfAmount]),
+                    Amount = ParseAmount(line[descriptor.IndexOfAmount])!.Value,
                     Balance = descriptor.IndexOfBalance >= 0 && descriptor.IndexOfBalance < line.Length
                         ? ParseAmount(line[descriptor.IndexOfBalance])
                         : null,
