@@ -6,7 +6,7 @@ namespace KMPAccounting.Accounting
     public abstract class ReportSchemeBase
     {
         /// <summary>
-        ///  Typically called after accounts state initialization and before ledger run.
+        ///  Typically called after accounts root initialization and before ledger run.
         /// </summary>
         public abstract void Start();
 

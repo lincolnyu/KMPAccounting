@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "KMPAccounting.Console": {
-      "commandName": "Project",
-      "commandLineArgs": "expense --account Liability.Loan.AdbHome credit --input C:\\Users\\quanb\\OneDrive\\tagged\\store\\2402012306\\testdata\\FY24\\input\\adbloan1\\adbloan1_balance.csv --output C:\\Users\\quanb\\OneDrive\\tagged\\store\\2402012306\\testdata\\FY24\\output\\adbloan1_balance.txt"
-    }
-  }
-}

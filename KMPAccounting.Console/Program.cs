@@ -1,8 +1,10 @@
 ﻿using KMPAccounting.AccountImporting;
 using KMPAccounting.Objects;
+using KMPAccounting.Objects.AccountCreation;
 using KMPAccounting.Objects.Accounts;
 using KMPAccounting.Objects.BookKeeping;
-using KOU = KMPAccounting.Objects.AccountHelper;
+using KMPAccounting.ReportSchemes;
+using static KMPAccounting.Objects.AccountHelper;
 
 namespace KMPAccounting.Console;
 
@@ -11,6 +13,7 @@ internal class Program
     private static void Main(string[] args)
     {
         string? cmd = null;
+        string? stateName = null;
         string? accountName = null;
         List<string> inputFiles = [];
         string? outputFile = null;
@@ -22,7 +25,12 @@ internal class Program
 
             for (var i = 1; i < args.Length; i++)
             {
-                if (args[i] == "--account" && i + 1 < args.Length)
+                if (args[i] == "--root" && i + 1 < args.Length)
+                {
+                    stateName = args[i + 1];
+                    i++;
+                }
+                else if (args[i] == "--account" && i + 1 < args.Length)
                 {
                     accountName = args[i + 1];
                     i++;
@@ -56,13 +64,13 @@ internal class Program
             switch (cmd)
             {
                 case "expense":
-                    if (accountName == null || inputFiles.Count != 1 || outputFile == null)
+                    if (stateName == null || accountName == null || inputFiles.Count != 1 || outputFile == null)
                     {
                         ShowUsage();
                         return;
                     }
 
-                    CreateExpenseLedger(accountName, isCredit, inputFiles[0], outputFile);
+                    CreateExpenseLedger(stateName, accountName, isCredit, inputFiles[0], outputFile);
                     break;
                 case "merge":
                     if (inputFiles.Count == 0 || outputFile == null)
@@ -84,7 +92,7 @@ internal class Program
     private static void ShowUsage()
     {
         System.Console.WriteLine(
-            "Usage: expense --account <account> [credit] --input <inputfile> --output <outputfile>");
+            "Usage: expense --root <root> --account <account> [credit] --input <inputfile> --output <outputfile>");
         System.Console.WriteLine(
             "       merge --input <inputfile1> [--input <inputfile2> ...] --output <outputfile>");
     }
@@ -92,12 +100,13 @@ internal class Program
     private const string UnspecifiedExpenseAccount = "Expense.ToBeSpecified";
     private const string UnspecifiedIncomeAccount = "Income.ToBeSpecified";
 
-    private static void CreateExpenseLedger(string accountName, bool isCredit, string inputFile, string outputFile)
+    private static void CreateExpenseLedger(string stateName, string accountName, bool isCredit, string inputFile,
+        string outputFile)
     {
         var csvImporter = new CsvImporter();
         using var srCsv = new StreamReader(inputFile);
         var arr = csvImporter.GuessColumnsAndImport(srCsv, inputFile).ToArray();
-        Transaction[] transactions = [];
+        Transaction[] transactions;
         if (arr.Length > 1 && arr[0].Date > arr[^1].Date)
         {
             transactions = arr.Reverse().ToArray();
@@ -108,27 +117,43 @@ internal class Program
         }
 
 
-        AccountsState.Clear();
+        AccountsRoot.Clear();
         var ledger = new Ledger();
 
         var accountCreationDate = DateTime.MinValue;
 
-        ledger.EnsureCreateAccount(accountCreationDate, accountName, isCredit);
+        AccountPath root = new(stateName);
+        var mainAccount = root + accountName;
+        var unspecifiedExpense = root + UnspecifiedExpenseAccount;
+        var unspecifiedIncome = root + UnspecifiedIncomeAccount;
 
-        var addedExpenseAccount = new HashSet<string>();
+        ledger.EnsureCreateAccount(accountCreationDate, mainAccount,
+            GetChooseSideFunc(isCredit
+                ? SideOptionEnum.AllCredit
+                : SideOptionEnum.AllDebit));
+
+        var addedAccount = new HashSet<string>();
         foreach (var transaction in transactions)
         {
             if (transaction.CounterAccount == null)
             {
                 var isExpense = transaction.Amount < 0;
-                transaction.CounterAccount = isExpense ? UnspecifiedExpenseAccount : UnspecifiedIncomeAccount;
+                transaction.CounterAccount = isExpense ? unspecifiedExpense : unspecifiedIncome;
+            }
+            else
+            {
+                // Add the root name, assuming it's not included
+                transaction.CounterAccount = root + transaction.CounterAccount;
             }
 
-            if (!addedExpenseAccount.Contains(transaction.CounterAccount))
+            if (!addedAccount.Contains(transaction.CounterAccount))
             {
+                var isCounterAccountCredit = StandardAccounts.GetAccountIsCredit(transaction.CounterAccount);
                 ledger.EnsureCreateAccount(accountCreationDate, transaction.CounterAccount,
-                    false /* It has to be expense*/);
-                addedExpenseAccount.Add(transaction.CounterAccount);
+                    GetChooseSideFunc(isCounterAccountCredit
+                        ? SideOptionEnum.AllCredit
+                        : SideOptionEnum.AllDebit)); /* It has to be expense*/
+                addedAccount.Add(transaction.CounterAccount);
             }
         }
 
@@ -151,13 +176,13 @@ internal class Program
                 if (amount > 0)
                 {
                     // expense
-                    ledger.AddAndExecuteTransaction(date, transaction.CounterAccount!, accountName, amount,
+                    ledger.AddAndExecuteTransaction(date, transaction.CounterAccount!, mainAccount, amount,
                         transaction.Description);
                 }
                 else
                 {
                     // income
-                    ledger.AddAndExecuteTransaction(date, accountName, transaction.CounterAccount!, -amount,
+                    ledger.AddAndExecuteTransaction(date, mainAccount, transaction.CounterAccount!, -amount,
                         transaction.Description);
                 }
             }
@@ -166,13 +191,13 @@ internal class Program
                 if (amount > 0)
                 {
                     // income
-                    ledger.AddAndExecuteTransaction(date, accountName, transaction.CounterAccount!, amount,
+                    ledger.AddAndExecuteTransaction(date, mainAccount, transaction.CounterAccount!, amount,
                         transaction.Description);
                 }
                 else
                 {
                     // expense
-                    ledger.AddAndExecuteTransaction(date, transaction.CounterAccount!, accountName, -amount,
+                    ledger.AddAndExecuteTransaction(date, transaction.CounterAccount!, mainAccount, -amount,
                         transaction.Description);
                 }
             }
@@ -189,7 +214,7 @@ internal class Program
                     if (balanceTracker.Value != balance.Value)
                     {
                         System.Console.WriteLine(
-                            $"Error: Balance verification failed. Expected {balance.Value}, actual {KOU.GetAccount(accountName)!.Balance}.");
+                            $"Error: Balance verification failed. Expected {balance.Value}, actual {GetAccount(mainAccount)!.Balance}.");
                     }
                 }
                 else

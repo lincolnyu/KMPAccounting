@@ -12,6 +12,8 @@
             return accountGroup.Path;
         }
 
+        public string this[int index] => Path.Split('.')[index];
+
         public static AccountPath operator +(AccountPath group, string suffix)
         {
             var trimmedGroupPath = group.Path.TrimEnd('.');

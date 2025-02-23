@@ -21,13 +21,19 @@ namespace KMPAccounting.ReportSchemes
 
         public static readonly string EquityMain = $"Equity.{Objects.Constants.MainNodeName}";
 
-        public static string GetAccountFullName(string bookName, string type, string subdivision="", string subcategory="")
+        public static string GetAccountFullName(string rootName, string type, string subdivision="", string subcategory="")
         {
-            var path = (AccountPath)bookName;
+            var path = (AccountPath)rootName;
             path += type.Trim();
             path += subdivision.Trim();
             path += subcategory.Trim();
             return path;
+        }
+
+        public static bool GetAccountIsCredit(AccountPath accountFullName)
+        {
+            var typeName = accountFullName[1];
+            return typeName.StartsWith(Income) || typeName.StartsWith(TaxReturn) || typeName.StartsWith(TaxWithheld);
         }
     }
 }

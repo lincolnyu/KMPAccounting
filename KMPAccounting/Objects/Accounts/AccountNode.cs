@@ -67,7 +67,7 @@ namespace KMPAccounting.Objects.Accounts
 
         public string Name { get; set; } = name;
 
-        // Note: This uniquely identifies the account node systemwide.
+        // Note: This uniquely identifies the account node system-wide.
         public string FullName => Parent != null ? Parent.FullName + "." + Name : Name;
 
         public AccountNode? Parent { get; set; }

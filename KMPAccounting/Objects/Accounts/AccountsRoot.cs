@@ -3,31 +3,31 @@ using System.Text;
 
 namespace KMPAccounting.Objects.Accounts
 {
-    public class AccountsState(string name) : AccountNode(SideEnum.Debit, name)
+    public class AccountsRoot(string name) : AccountNode(SideEnum.Debit, name)
     {
         public static void Clear()
         {
-            AccountStates.Clear();
+            AccountRoots.Clear();
         }
 
-        public static AccountsState? GetAccountsState(string name)
+        public static AccountsRoot? GetAccountsRoot(string name)
         {
-            return AccountStates.GetValueOrDefault(name);
+            return AccountRoots.GetValueOrDefault(name);
         }
 
-        public static void AddState(string name, AccountsState state)
+        public static void AddRoot(string name, AccountsRoot root)
         {
-            AccountStates.Add(name, state);
+            AccountRoots.Add(name, root);
         }
 
-        public static bool RemoveState(string name)
+        public static bool RemoveRoot(string name)
         {
-            var result = AccountStates.Remove(name, out var removed);
+            var result = AccountRoots.Remove(name, out var removed);
             removed?.Dispose();
             return result;
         }
 
-        private static readonly Dictionary<string, AccountsState> AccountStates = [];
+        private static readonly Dictionary<string, AccountsRoot> AccountRoots = [];
 
         public string ToString(int tabSize)
         {

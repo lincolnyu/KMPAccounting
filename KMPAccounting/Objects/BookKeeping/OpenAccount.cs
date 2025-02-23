@@ -107,8 +107,8 @@ namespace KMPAccounting.Objects.BookKeeping
             else
             {
                 // Create the state.
-                var state = new AccountsState(Name);
-                AccountsState.AddState(Name, state);
+                var state = new AccountsRoot(Name);
+                AccountsRoot.AddRoot(Name, state);
             }
         }
 
@@ -126,7 +126,7 @@ namespace KMPAccounting.Objects.BookKeeping
             else
             {
                 // Remove the state.
-                AccountsState.RemoveState(Name);
+                AccountsRoot.RemoveRoot(Name);
             }
         }
     }

@@ -1,10 +1,11 @@
 ﻿using KMPAccounting.Objects;
 using KMPAccounting.Objects.BookKeeping;
 using KMPAccounting.Objects.Reports;
-using KOU = KMPAccounting.Objects.AccountHelper;
 using System.Diagnostics;
 using System;
 using KMPAccounting.Objects.AccountCreation;
+using static KMPAccounting.Objects.AccountHelper;
+using static KMPAccounting.Objects.AccountHelper.SideOptionEnum;
 
 namespace KMPAccounting.ReportSchemes
 {
@@ -32,19 +33,19 @@ namespace KMPAccounting.ReportSchemes
 
         public decimal? BusinessLossDeduction { get; set; }
 
-        public static AccountsSetup CreateStandard(string bookName, string subdivision = "")
+        public static AccountsSetup CreateStandard(string rootName, string subdivision = "")
         {
-            var state = (AccountPath)bookName;
+            var root = (AccountPath)rootName;
             return new AccountsSetup
             {
-                TaxReturnCashAccount = StandardAccounts.GetAccountFullName(state, StandardAccounts.Cash),
-                Income = StandardAccounts.GetAccountFullName(state, StandardAccounts.Income, subdivision),
-                Expense = StandardAccounts.GetAccountFullName(state, StandardAccounts.Expense, subdivision),
-                Deduction = StandardAccounts.GetAccountFullName(state, StandardAccounts.Deduction, subdivision),
-                TaxWithheld = StandardAccounts.GetAccountFullName(state, StandardAccounts.TaxWithheld, subdivision),
-                TaxReturn = StandardAccounts.GetAccountFullName(state, StandardAccounts.TaxReturn, subdivision),
+                TaxReturnCashAccount = StandardAccounts.GetAccountFullName(root, StandardAccounts.Cash),
+                Income = StandardAccounts.GetAccountFullName(root, StandardAccounts.Income, subdivision),
+                Expense = StandardAccounts.GetAccountFullName(root, StandardAccounts.Expense, subdivision),
+                Deduction = StandardAccounts.GetAccountFullName(root, StandardAccounts.Deduction, subdivision),
+                TaxWithheld = StandardAccounts.GetAccountFullName(root, StandardAccounts.TaxWithheld, subdivision),
+                TaxReturn = StandardAccounts.GetAccountFullName(root, StandardAccounts.TaxReturn, subdivision),
                 EquityMain =
-                    StandardAccounts.GetAccountFullName(state,
+                    StandardAccounts.GetAccountFullName(root,
                         StandardAccounts.EquityMain), // Assuming equity is equally shared.
             };
         }
@@ -54,18 +55,18 @@ namespace KMPAccounting.ReportSchemes
             // Make sure income and deduction etc. are cleared into equity balance.
 
             // Debit
-            var incomeAccount = KOU.GetAccount(Income!);
+            var incomeAccount = GetAccount(Income!);
             var income = incomeAccount?.Balance ?? 0m;
             incomeAccount?.ZeroOutBalanceOfTree();
 
             // Tax return usually may be under income, so it may already be zeroed.
             // Debit
-            var taxReturnAccount = KOU.GetAccount(TaxReturn!);
+            var taxReturnAccount = GetAccount(TaxReturn!);
             var taxReturn = taxReturnAccount?.Balance ?? 0m;
             taxReturnAccount?.ZeroOutBalanceOfTree();
 
             // Credit
-            var deductionAccount = KOU.GetAccount(Deduction!);
+            var deductionAccount = GetAccount(Deduction!);
             var deduction = deductionAccount?.Balance ?? 0m;
             deductionAccount?.ZeroOutBalanceOfTree();
 
@@ -73,47 +74,47 @@ namespace KMPAccounting.ReportSchemes
             decimal expense = 0;
             if (Expense != null)
             {
-                var expenseAccount = KOU.GetAccount(Expense);
+                var expenseAccount = GetAccount(Expense);
                 expense = expenseAccount?.Balance ?? 0m;
                 expenseAccount?.ZeroOutBalanceOfTree();
             }
 
             // Credit
-            var taxWithheldAccount = KOU.GetAccount(TaxWithheld!);
+            var taxWithheldAccount = GetAccount(TaxWithheld!);
             var taxWithheld = taxWithheldAccount?.Balance ?? 0m;
             taxWithheldAccount?.ZeroOutBalanceOfTree();
 
             var deltaEquity = income + taxReturn - expense - deduction - taxWithheld;
 
             Ledger? ledger = null;
-            ledger.EnsureCreateAccount(DateTime.Now, EquityMain!, false);
+            ledger.EnsureCreateAccount(DateTime.Now, EquityMain!, GetChooseSideFunc(SameAsParent));
 
-            KOU.GetAccount(EquityMain!)!.Balance += deltaEquity;
+            GetAccount(EquityMain!)!.Balance += deltaEquity;
         }
 
         public void FinalizeTaxPeriodPreTaxCalculation(PnlReport pnlReport,
             decimal adjustment = 0)
         {
-            pnlReport.Income = KOU.GetAccount(Income!)?.Balance ?? 0;
-            pnlReport.Deduction = (KOU.GetAccount(Deduction!)?.Balance ?? 0) +
+            pnlReport.Income = GetAccount(Income!)?.Balance ?? 0;
+            pnlReport.Deduction = (GetAccount(Deduction!)?.Balance ?? 0) +
                                   (BusinessLossDeduction.GetValueOrDefault(0));
 
             if (adjustment > 0) pnlReport.Income += adjustment;
             else if (adjustment < 0) pnlReport.Deduction -= adjustment;
 
-            pnlReport.TaxWithheld = KOU.GetAccount(TaxWithheld!)?.Balance ?? 0;
+            pnlReport.TaxWithheld = GetAccount(TaxWithheld!)?.Balance ?? 0;
         }
 
         public void FinalizeTaxPeriodPostTaxCalculation(PnlReport pnlReport)
         {
             Ledger? ledger = null;
-            ledger.EnsureCreateAccount(DateTime.Now, TaxReturn!, false);
-            ledger.EnsureCreateAccount(DateTime.Now, TaxReturnCashAccount!, false);
+            ledger.EnsureCreateAccount(DateTime.Now, TaxReturn!, GetChooseSideFunc(SameAsParent));
+            ledger.EnsureCreateAccount(DateTime.Now, TaxReturnCashAccount!, GetChooseSideFunc(SameAsParent));
 
             ledger.AddAndExecuteTransaction(DateTime.Now, TaxReturnCashAccount!,
                 TaxReturn!, pnlReport.TaxReturn);
 
-            Debug.Assert(KOU.GetStateNode(TaxReturnCashAccount!) is { Balance: 0 });
+            Debug.Assert(GetStateNode(TaxReturnCashAccount!) is { Balance: 0 });
         }
     }
 }

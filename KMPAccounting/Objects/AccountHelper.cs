@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using static KMPAccounting.Objects.Accounts.AccountNode;
 
 namespace KMPAccounting.Objects
 {
@@ -13,14 +14,14 @@ namespace KMPAccounting.Objects
         {
             var split = accountFullName.Split('.', 2);
             Debug.Assert(split.Length <= 2);
-            return AccountsState.GetAccountsState(split[0]);
+            return AccountsRoot.GetAccountsRoot(split[0]);
         }
 
         public static AccountNode? GetAccount(string fullName)
         {
             var split = fullName.Split('.', 2);
             Debug.Assert(split.Length <= 2);
-            var state = AccountsState.GetAccountsState(split[0]);
+            var state = AccountsRoot.GetAccountsRoot(split[0]);
             if (state == null) return null;
             if (split.Length == 1)
             {
@@ -30,7 +31,7 @@ namespace KMPAccounting.Objects
             return state.GetAccount(split[1]);
         }
 
-        public static AccountNode? GetAccount(this AccountsState state, string fullName)
+        public static AccountNode? GetAccount(this AccountsRoot state, string fullName)
         {
             var splitNames = fullName.Split('.');
             AccountNode p = state;
@@ -67,7 +68,7 @@ namespace KMPAccounting.Objects
             foreach (var leaf in sources)
             {
                 var leafPositiveBalance = leaf.Balance > 0;
-                var leafDebitSide = leaf.Side == AccountNode.SideEnum.Debit;
+                var leafDebitSide = leaf.Side == SideEnum.Debit;
                 var amount = Math.Abs(leaf.Balance);
                 if (leafPositiveBalance ^ leafDebitSide)
                 {
@@ -106,8 +107,8 @@ namespace KMPAccounting.Objects
 
             if (balanceA == 0 || balanceB == 0) return false; // No need to do it
 
-            var debitA = (balanceA > 0) ^ (a.Side == AccountNode.SideEnum.Debit);
-            var debitB = (balanceB > 0) ^ (b.Side == AccountNode.SideEnum.Debit);
+            var debitA = (balanceA > 0) ^ (a.Side == SideEnum.Debit);
+            var debitB = (balanceB > 0) ^ (b.Side == SideEnum.Debit);
 
             if (debitA == debitB) return false;
 
@@ -147,16 +148,59 @@ namespace KMPAccounting.Objects
             }
         }
 
+
+
+
+        public enum SideOptionEnum
+        {
+            SameAsParent,
+            OnlyLeafOppositeToParent,
+            AllCredit,
+            AllDebit
+        }
+
+        public static Func<string[], int, SideEnum, SideEnum> GetChooseSideFunc(SideOptionEnum option)
+        {
+            return option switch
+            {
+                SideOptionEnum.SameAsParent => SameAsParent,
+                SideOptionEnum.OnlyLeafOppositeToParent => OnlyLeafOppositeToParent,
+                SideOptionEnum.AllCredit => AllCredit,
+                SideOptionEnum.AllDebit => AllDebit,
+                _ => throw new ArgumentOutOfRangeException(nameof(option), option, null)
+            };
+
+            SideEnum SameAsParent(string[] splitNames, int i, SideEnum parentSide)
+            {
+                return i == splitNames.Length - 1 ? GetOppositeSide(parentSide) : parentSide;
+            }
+
+            SideEnum OnlyLeafOppositeToParent(string[] splitNames, int i, SideEnum parentSide)
+            {
+                return i == splitNames.Length - 1 ? GetOppositeSide(parentSide) : parentSide;
+            }
+
+            SideEnum AllDebit(string[] splitNames, int i, SideEnum parentSide)
+            {
+                return SideEnum.Debit;
+            }
+
+            SideEnum AllCredit(string[] splitNames, int i, SideEnum parentSide)
+            {
+                return SideEnum.Credit;
+            }
+        }
+
         /// <summary>
         ///  Ensure the specified account is created in the specified state by executing the OpenAccount entries it creates as required.
         /// </summary>
         /// <param name="ledger">The ledger to use for the account opening entry.</param>
         /// <param name="dateTime">The time to open the account for the path if it hasn't.</param>
-        /// <param name="state">The accounts state the account is in.</param>
+        /// <param name="state">The accounts root the account is in.</param>
         /// <param name="fullName">The full name that identify the account in the state.</param>
-        /// <param name="sideDifferToParent">If the account's leaf node is to have the opposite side to its immediate parent. The intermediate nodes created towards the leaf node will all have the same side as their parents.</param>
-        public static void EnsureCreateAccount(this Ledger? ledger, DateTime dateTime, AccountsState state,
-            string fullName, bool sideDifferToParent)
+        /// <param name="chooseSide">Func to choose the side for the current node</param>
+        public static void EnsureCreateAccount(this Ledger? ledger, DateTime dateTime, AccountsRoot state,
+            string fullName, Func<string[], int, SideEnum, SideEnum> chooseSide)
         {
             var splitNames = fullName.Split('.');
             AccountNode p = state;
@@ -167,9 +211,7 @@ namespace KMPAccounting.Objects
                 if (parentFullName != null || !p.Children.TryGetValue(seg, out var child))
                 {
                     parentFullName ??= p.FullName;
-                    var side = i == splitNames.Length - 1 && sideDifferToParent
-                        ? AccountNode.GetOppositeSide(p.Side)
-                        : p.Side;
+                    var side = chooseSide(splitNames, i, p.Side);
                     var openAccount = new OpenAccount(dateTime, (new AccountNodeReference(parentFullName), side), seg);
                     ledger.AddAndExecute(openAccount);
                     parentFullName += "." + seg;
@@ -189,27 +231,26 @@ namespace KMPAccounting.Objects
         /// <param name="ledger">The ledger to use for the account opening entry.</param>
         /// <param name="dateTime">The time to open the account for the path if it hasn't.</param>
         /// <param name="fullName">The full name that identify the account globally.</param>
-        /// <param name="sideDifferToParent">If the account's leaf node is to have the opposite side to its immediate parent. The intermediate nodes created towards the leaf node will all have the same side as their parents.</param>
-        public static void EnsureCreateAccount(this Ledger? ledger, DateTime dateTime, string fullName,
-            bool sideDifferToParent)
+        /// <param name="chooseSide">Func to choose the side for the current node</param>
+        public static void EnsureCreateAccount(this Ledger? ledger, DateTime dateTime, string fullName, Func<string[], int, SideEnum, SideEnum> chooseSide)
         {
             // This makes sure the state is already created.
             // The function is meant to create accounts for a state. And that's why it expects the fullName to have at least 2 segments.
             var split = fullName.Split('.', 2);
 
             var stateName = split[0];
-            var state = AccountsState.GetAccountsState(stateName);
+            var state = AccountsRoot.GetAccountsRoot(stateName);
             if (state == null)
             {
                 var openAccount = new OpenAccount(dateTime, null, stateName);
                 ledger.AddAndExecute(openAccount);
 
-                state = AccountsState.GetAccountsState(stateName)!;
+                state = AccountsRoot.GetAccountsRoot(stateName)!;
             }
 
             if (split.Length == 2)
             {
-                ledger.EnsureCreateAccount(dateTime, state, split[1], sideDifferToParent);
+                ledger.EnsureCreateAccount(dateTime, state, split[1], chooseSide);
             }
         }
 

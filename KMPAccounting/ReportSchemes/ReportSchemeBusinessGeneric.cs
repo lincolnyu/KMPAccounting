@@ -11,7 +11,7 @@ namespace KMPAccounting.ReportSchemes
             /// <summary>
             ///  Constructing the object
             /// </summary>
-            /// <param name="accountsSetup">Name of the accounts state of the business.</param>
+            /// <param name="accountsSetup">Name of the accounts root of the business.</param>
             public BusinessDetails(AccountsSetup accountsSetup)
             {
                 AccountsSetup = accountsSetup;
