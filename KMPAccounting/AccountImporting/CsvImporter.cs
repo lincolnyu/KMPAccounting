@@ -14,7 +14,7 @@ namespace KMPAccounting.AccountImporting
             public int IndexOfDescription { get; set; }
             public int IndexOfAmount { get; set; }
             public int IndexOfBalance { get; set; }
-            public int IndexOfCounterAccount { get; set; }
+            public int IndexOfCounterAccounts { get; set; }
         }
 
         private static int GetIndex(string[] header, params string[] searchItems)
@@ -40,17 +40,19 @@ namespace KMPAccounting.AccountImporting
                 IndexOfDescription = GetIndex(headerLower, "description", "remarks", "comments"),
                 IndexOfAmount = GetIndex(headerLower, "amount", "debit/credit"),
                 IndexOfBalance = GetIndex(headerLower, "balance"),
-                IndexOfCounterAccount = GetIndex(headerLower, "counteraccount", "counter account", "counter_account")
+                IndexOfCounterAccounts = GetIndex(headerLower, "counteraccounts", "counteraccount", "counter accounts",
+                    "counter account", "counter_accounts", "counter_account", "against")
             };
 
             return descriptor;
         }
 
-        public IEnumerable<Transaction> GuessColumnsAndImport(StreamReader sr, string sourceReference)
+        public IEnumerable<Transaction> GuessColumnsAndImport(StreamReader sr, string sourceReference,
+            string counterAccountsPrefix)
         {
             var header = sr.GetAndBreakRow(true).ToArray();
             var descriptor = GuessDescriptor(header);
-            return Import(sr, descriptor, sourceReference);
+            return Import(sr, descriptor, sourceReference, counterAccountsPrefix);
         }
 
         private static decimal? ParseAmount(string amount)
@@ -68,7 +70,8 @@ namespace KMPAccounting.AccountImporting
             return null;
         }
 
-        public IEnumerable<Transaction> Import(StreamReader sr, CsvDescriptor descriptor, string sourceReference)
+        public IEnumerable<Transaction> Import(StreamReader sr, CsvDescriptor descriptor, string sourceReference,
+            string counterAccountsPrefix)
         {
             while (!sr.EndOfStream)
             {
@@ -94,12 +97,88 @@ namespace KMPAccounting.AccountImporting
                     Balance = descriptor.IndexOfBalance >= 0 && descriptor.IndexOfBalance < line.Length
                         ? ParseAmount(line[descriptor.IndexOfBalance])
                         : null,
-                    CounterAccount = descriptor.IndexOfCounterAccount >= 0 &&
-                                     descriptor.IndexOfCounterAccount < line.Length
-                        ? line.ElementAtOrDefault(descriptor.IndexOfCounterAccount)
-                        : null,
                 };
+
+                if (descriptor.IndexOfCounterAccounts >= 0 &&
+                    descriptor.IndexOfCounterAccounts < line.Length)
+                {
+                    transaction.CounterAccounts.AddRange(ParseCounterAccounts(line[descriptor.IndexOfCounterAccounts], transaction.Amount, counterAccountsPrefix));
+                }
+
                 yield return transaction;
+            }
+        }
+
+        private static IEnumerable<(string, decimal)> ParseCounterAccounts(string counterAccountsValue, decimal totalAmount, string counterAccountsPrefix)
+        {
+            var counterAccounts = counterAccountsValue.Split(';');
+
+            decimal?[] amounts = new decimal?[counterAccounts.Length];
+            var sum = 0m;
+            var filled = 0;
+            for (var index = 0; index < counterAccounts.Length; index++)
+            {
+                var counterAccount = counterAccounts[index];
+                var parts = counterAccount.Split(':', StringSplitOptions.TrimEntries);
+                if (parts.Length == 2)
+                {
+                    decimal? amount;
+                    if (parts[1].EndsWith('%'))
+                    {
+                        if (!decimal.TryParse(parts[1][..^1], out var percent))
+                        {
+                            throw new ArgumentException($"Invalid percent format: {parts[1]}");
+                        }
+
+                        amount = totalAmount * percent / 100;
+                    }
+                    else
+                    {
+                        amount = ParseAmount(parts[1]);
+                    }
+
+                    if (amount.HasValue)
+                    {
+                        sum += amount.Value;
+                        filled++;
+                        amounts[index] = amount;
+                    }
+                }
+            }
+
+            if (filled == amounts.Length)
+            {
+                if (sum != totalAmount)
+                {
+                    sum = 0;
+                    for (var index = 0; index < amounts.Length - 1; index++)
+                    {
+                        sum += amounts[index]!.Value;
+                    }
+                    amounts[^1] = totalAmount - sum;
+                }
+            }
+            else
+            {
+                var remaining = totalAmount - sum;
+                var dist = remaining / (amounts.Length - filled);
+
+                for (var index = 0; index < amounts.Length; index++)
+                {
+                    if (amounts[index] == null)
+                    {
+                        amounts[index] = filled == amounts.Length - 1 ? totalAmount - sum : dist;
+                        sum += amounts[index]!.Value;
+                        filled++;
+                    }
+                }
+            }
+
+            for (var index = 0; index < counterAccounts.Length; index++)
+            {
+                var counterAccount = counterAccounts[index];
+                var parts = counterAccount.Split(':', StringSplitOptions.TrimEntries);
+                yield return (counterAccountsPrefix + parts[0], amounts[index]!.Value);
             }
         }
     }

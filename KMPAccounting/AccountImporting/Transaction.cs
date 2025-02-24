@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace KMPAccounting.AccountImporting
 {
@@ -8,6 +9,6 @@ namespace KMPAccounting.AccountImporting
         public decimal Amount { get; set; }
         public decimal? Balance { get; set; }
         public DateTime Date { get; set; }
-        public string? CounterAccount { get; set; }
+        public List<(string, decimal)> CounterAccounts = [];
     }
 }

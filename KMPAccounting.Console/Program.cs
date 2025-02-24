@@ -5,6 +5,7 @@ using KMPAccounting.Objects.Accounts;
 using KMPAccounting.Objects.BookKeeping;
 using KMPAccounting.ReportSchemes;
 using static KMPAccounting.Objects.AccountHelper;
+using Transaction = KMPAccounting.AccountImporting.Transaction;
 
 namespace KMPAccounting.Console;
 
@@ -17,6 +18,7 @@ internal class Program
         string? accountName = null;
         List<string> inputFiles = [];
         string? outputFile = null;
+        string counterAccountsPrefix = "";
         var isCredit = false;
 
         if (args.Length > 0)
@@ -46,6 +48,11 @@ internal class Program
                     outputFile = args[i + 1];
                     i++;
                 }
+                else if (args[i] == "--counteraccountsprefix" && i + 1 < args.Length)
+                {
+                    counterAccountsPrefix = args[i + 1];
+                    i++;
+                }
                 else if (args[i] == "credit")
                 {
                     isCredit = true;
@@ -70,7 +77,8 @@ internal class Program
                         return;
                     }
 
-                    CreateExpenseLedger(stateName, accountName, isCredit, inputFiles[0], outputFile);
+                    CreateExpenseLedger(stateName, accountName, isCredit, inputFiles[0], outputFile,
+                        counterAccountsPrefix);
                     break;
                 case "merge":
                     if (inputFiles.Count == 0 || outputFile == null)
@@ -101,11 +109,11 @@ internal class Program
     private const string UnspecifiedIncomeAccount = "Income.ToBeSpecified";
 
     private static void CreateExpenseLedger(string stateName, string accountName, bool isCredit, string inputFile,
-        string outputFile)
+        string outputFile, string counterAccountsPrefix)
     {
         var csvImporter = new CsvImporter();
         using var srCsv = new StreamReader(inputFile);
-        var arr = csvImporter.GuessColumnsAndImport(srCsv, inputFile).ToArray();
+        var arr = csvImporter.GuessColumnsAndImport(srCsv, inputFile, counterAccountsPrefix).ToArray();
         Transaction[] transactions;
         if (arr.Length > 1 && arr[0].Date > arr[^1].Date)
         {
@@ -115,7 +123,6 @@ internal class Program
         {
             transactions = arr;
         }
-
 
         AccountsRoot.Clear();
         var ledger = new Ledger();
@@ -132,36 +139,54 @@ internal class Program
                 ? SideOptionEnum.AllCredit
                 : SideOptionEnum.AllDebit));
 
-        System.Diagnostics.Debug.Assert(GetAccount(mainAccount)!.Balance==0);
+        System.Diagnostics.Debug.Assert(GetAccount(mainAccount)!.Balance == 0);
 
         var addedAccount = new HashSet<string>();
         foreach (var transaction in transactions)
         {
-            if (transaction.CounterAccount == null)
+            if (transaction.Amount == 0)
             {
-                var isExpense = transaction.Amount < 0;
-                transaction.CounterAccount = isExpense ? unspecifiedExpense : unspecifiedIncome;
-            }
-            else
-            {
-                // Add the root name, assuming it's not included
-                transaction.CounterAccount = root + transaction.CounterAccount;
+                continue;
             }
 
-            if (!addedAccount.Contains(transaction.CounterAccount))
+            for (var index = 0; index < transaction.CounterAccounts.Count; index++)
             {
-                var isCounterAccountCredit = StandardAccounts.GetAccountIsCredit(transaction.CounterAccount);
-                ledger.EnsureCreateAccount(accountCreationDate, transaction.CounterAccount,
-                    GetChooseSideFunc(isCounterAccountCredit ? SideOptionEnum.AllCredit : SideOptionEnum.AllDebit)); /* It has to be expense*/
-                addedAccount.Add(transaction.CounterAccount);
-                System.Diagnostics.Debug.Assert(GetAccount(transaction.CounterAccount)!.Balance == 0);
+                var (x, amount) = transaction.CounterAccounts[index];
+                // Add the root name, assuming it's not included
+                transaction.CounterAccounts[index] = ((root + x), amount);
+            }
+
+            if (transaction.CounterAccounts.Count == 0)
+            {
+                var isExpense = transaction.Amount < 0;
+                transaction.CounterAccounts.Add(
+                    (isExpense ? unspecifiedExpense : unspecifiedIncome, transaction.Amount));
+            }
+
+            foreach (var (counterAccount, _) in transaction.CounterAccounts)
+            {
+                if (!addedAccount.Contains(counterAccount))
+                {
+                    var isCounterAccountCredit = StandardAccounts.GetAccountIsCredit(counterAccount);
+                    ledger.EnsureCreateAccount(accountCreationDate, counterAccount,
+                        GetChooseSideFunc(isCounterAccountCredit ? SideOptionEnum.AllDebit : SideOptionEnum.AllCredit));
+                    addedAccount.Add(counterAccount);
+                    System.Diagnostics.Debug.Assert(GetAccount(counterAccount)!.Balance == 0);
+                }
             }
         }
 
         decimal? balanceTracker = null;
         foreach (var transaction in transactions)
         {
+            var counterAccounts = transaction.CounterAccounts;
+
             var amount = transaction.Amount;
+            if (amount == 0)
+            {
+                continue;
+            }
+
             var balance = transaction.Balance;
 
             // Note: Assuming credit account amounts and balances are negative
@@ -172,33 +197,34 @@ internal class Program
             }
 
             var date = transaction.Date;
-            if (isCredit)
+
+            var isIncome = isCredit ^ amount > 0;
+            var absAmount = amount > 0 ? amount : -amount;
+            if (isIncome)
             {
-                if (amount > 0)
+                if (counterAccounts.Count > 1)
                 {
-                    // expense
-                    ledger.AddAndExecuteTransaction(date, transaction.CounterAccount!, mainAccount, amount,
+                    var composite = CreateTransaction(date, [(mainAccount, absAmount)], counterAccounts,
                         transaction.Description);
+                    ledger.AddAndExecute(composite);
                 }
                 else
                 {
-                    // income
-                    ledger.AddAndExecuteTransaction(date, mainAccount, transaction.CounterAccount!, -amount,
+                    ledger.AddAndExecuteTransaction(date, mainAccount, counterAccounts[0].Item1, absAmount,
                         transaction.Description);
                 }
             }
             else
             {
-                if (amount > 0)
+                if (counterAccounts.Count > 1)
                 {
-                    // income
-                    ledger.AddAndExecuteTransaction(date, mainAccount, transaction.CounterAccount!, amount,
+                    var composite = CreateTransaction(date, counterAccounts, [(mainAccount, absAmount)],
                         transaction.Description);
+                    ledger.AddAndExecute(composite);
                 }
                 else
                 {
-                    // expense
-                    ledger.AddAndExecuteTransaction(date, transaction.CounterAccount!, mainAccount, -amount,
+                    ledger.AddAndExecuteTransaction(date, counterAccounts[0].Item1, mainAccount, absAmount,
                         transaction.Description);
                 }
             }
