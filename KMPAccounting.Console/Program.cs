@@ -113,7 +113,9 @@ internal class Program
     {
         var csvImporter = new CsvImporter();
         using var srCsv = new StreamReader(inputFile);
-        var arr = csvImporter.GuessColumnsAndImport(srCsv, inputFile, counterAccountsPrefix).ToArray();
+
+        var (_, descriptor) = csvImporter.GetHeaderAndDescriptor(srCsv);
+        var arr = csvImporter.Import(srCsv, descriptor, counterAccountsPrefix).ToArray();
         Transaction[] transactions;
         if (arr.Length > 1 && arr[0].Date > arr[^1].Date)
         {

@@ -47,12 +47,11 @@ namespace KMPAccounting.AccountImporting
             return descriptor;
         }
 
-        public IEnumerable<Transaction> GuessColumnsAndImport(StreamReader sr, string sourceReference,
-            string counterAccountsPrefix)
+        public (string[], CsvDescriptor) GetHeaderAndDescriptor(StreamReader sr)
         {
             var header = sr.GetAndBreakRow(true).ToArray();
             var descriptor = GuessDescriptor(header);
-            return Import(sr, descriptor, sourceReference, counterAccountsPrefix);
+            return (header, descriptor);
         }
 
         private static decimal? ParseAmount(string amount)
@@ -70,7 +69,7 @@ namespace KMPAccounting.AccountImporting
             return null;
         }
 
-        public IEnumerable<Transaction> Import(StreamReader sr, CsvDescriptor descriptor, string sourceReference,
+        public IEnumerable<Transaction> Import(StreamReader sr, CsvDescriptor descriptor, 
             string counterAccountsPrefix)
         {
             while (!sr.EndOfStream)
