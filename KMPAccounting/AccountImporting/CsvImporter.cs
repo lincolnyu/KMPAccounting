@@ -31,7 +31,7 @@ namespace KMPAccounting.AccountImporting
             return -1;
         }
 
-        public CsvDescriptor GuessDescriptor(IEnumerable<string> header)
+        public static CsvDescriptor GuessDescriptor(IEnumerable<string> header)
         {
             var headerLower = header.Select(x => x.ToLower()).ToArray();
             var descriptor = new CsvDescriptor
@@ -47,7 +47,7 @@ namespace KMPAccounting.AccountImporting
             return descriptor;
         }
 
-        public (string[], CsvDescriptor) GetHeaderAndDescriptor(StreamReader sr)
+        public static (string[], CsvDescriptor) GetHeaderAndDescriptor(StreamReader sr)
         {
             var header = sr.GetAndBreakRow(true).ToArray();
             var descriptor = GuessDescriptor(header);
@@ -69,8 +69,8 @@ namespace KMPAccounting.AccountImporting
             return null;
         }
 
-        public IEnumerable<Transaction> Import(StreamReader sr, CsvDescriptor descriptor, 
-            string counterAccountsPrefix)
+        public static IEnumerable<Transaction> Import(StreamReader sr, CsvDescriptor descriptor, 
+            string counterAccountsPrefix, bool keepAllFields)
         {
             while (!sr.EndOfStream)
             {
@@ -102,6 +102,11 @@ namespace KMPAccounting.AccountImporting
                     descriptor.IndexOfCounterAccounts < line.Length)
                 {
                     transaction.CounterAccounts.AddRange(ParseCounterAccounts(line[descriptor.IndexOfCounterAccounts], transaction.Amount, counterAccountsPrefix));
+                }
+
+                if (keepAllFields)
+                {
+                    transaction.Fields.AddRange(line);
                 }
 
                 yield return transaction;

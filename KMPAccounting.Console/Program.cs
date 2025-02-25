@@ -111,11 +111,10 @@ internal class Program
     private static void CreateExpenseLedger(string stateName, string accountName, bool isCredit, string inputFile,
         string outputFile, string counterAccountsPrefix)
     {
-        var csvImporter = new CsvImporter();
         using var srCsv = new StreamReader(inputFile);
 
-        var (_, descriptor) = csvImporter.GetHeaderAndDescriptor(srCsv);
-        var arr = csvImporter.Import(srCsv, descriptor, counterAccountsPrefix).ToArray();
+        var (_, descriptor) = CsvImporter.GetHeaderAndDescriptor(srCsv);
+        var arr = CsvImporter.Import(srCsv, descriptor, counterAccountsPrefix, false).ToArray();
         Transaction[] transactions;
         if (arr.Length > 1 && arr[0].Date > arr[^1].Date)
         {
@@ -257,7 +256,6 @@ internal class Program
         sw.WriteLine("IndentedRemarks=true");
         ledger.SerializeToStream(sw, true);
     }
-
 
     private static void Merge(List<string> inputFiles, string outputFle)
     {
