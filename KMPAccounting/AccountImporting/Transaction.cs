@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using KMPCommon;
 
 namespace KMPAccounting.AccountImporting
@@ -22,11 +23,29 @@ namespace KMPAccounting.AccountImporting
 
         public void UpdateToFields(CsvImporter.CsvDescriptor descriptor)
         {
-            Fields[descriptor.IndexOfAmount] = Amount.ToString(CultureInfo.InvariantCulture);
-            Fields[descriptor.IndexOfDate] = CsvUtility.TimestampToString(Date);
-            Fields[descriptor.IndexOfDescription] = Description ?? "";
-            Fields[descriptor.IndexOfBalance] = Balance?.ToString(CultureInfo.InvariantCulture) ?? "";
-            Fields[descriptor.IndexOfCounterAccounts] = string.Join(";", CounterAccounts.Select(x => $"{x.Item1}:{x.Item2}"));
+            SetFieldAtOrAdd(descriptor.IndexOfAmount, Amount.ToString(CultureInfo.InvariantCulture));
+            SetFieldAtOrAdd(descriptor.IndexOfDate, Date.ToShortDateString());
+            SetFieldAtOrAdd(descriptor.IndexOfDescription, Description ?? "");
+            SetFieldAtOrAdd(descriptor.IndexOfBalance, Balance?.ToString(CultureInfo.InvariantCulture) ?? "");
+            if (CounterAccounts.Count > 1)
+            {
+                SetFieldAtOrAdd(descriptor.IndexOfCounterAccounts,
+                    string.Join(";", CounterAccounts.Select(x => $"{x.Item1}:{x.Item2}")));
+            }
+            else if (CounterAccounts.Count == 1)
+            {
+                SetFieldAtOrAdd(descriptor.IndexOfCounterAccounts, CounterAccounts[0].Item1);
+            }
+        }
+
+        private void SetFieldAtOrAdd(int index, string val)
+        {
+            while (index >= Fields.Count)
+            {
+                Fields.Add("");
+            }
+
+            Fields[index] = val;
         }
     }
 }

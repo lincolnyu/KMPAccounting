@@ -3,6 +3,7 @@ using KMPCommon;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using KMPAccounting.Objects.AccountCreation;
 
 namespace KMPAccounting.AccountImporting
 {
@@ -69,7 +70,7 @@ namespace KMPAccounting.AccountImporting
             return null;
         }
 
-        public static IEnumerable<Transaction> Import(StreamReader sr, CsvDescriptor descriptor, 
+        public static IEnumerable<Transaction> Import(StreamReader sr, CsvDescriptor descriptor,
             string counterAccountsPrefix, bool keepAllFields)
         {
             while (!sr.EndOfStream)
@@ -101,7 +102,8 @@ namespace KMPAccounting.AccountImporting
                 if (descriptor.IndexOfCounterAccounts >= 0 &&
                     descriptor.IndexOfCounterAccounts < line.Length)
                 {
-                    transaction.CounterAccounts.AddRange(ParseCounterAccounts(line[descriptor.IndexOfCounterAccounts], transaction.Amount, counterAccountsPrefix));
+                    transaction.CounterAccounts.AddRange(ParseCounterAccounts(line[descriptor.IndexOfCounterAccounts],
+                        transaction.Amount, counterAccountsPrefix));
                 }
 
                 if (keepAllFields)
@@ -113,7 +115,8 @@ namespace KMPAccounting.AccountImporting
             }
         }
 
-        private static IEnumerable<(string, decimal)> ParseCounterAccounts(string counterAccountsValue, decimal totalAmount, string counterAccountsPrefix)
+        private static IEnumerable<(string, decimal)> ParseCounterAccounts(string counterAccountsValue,
+            decimal totalAmount, string counterAccountsPrefix)
         {
             var counterAccounts = counterAccountsValue.Split(';');
 
@@ -159,6 +162,7 @@ namespace KMPAccounting.AccountImporting
                     {
                         sum += amounts[index]!.Value;
                     }
+
                     amounts[^1] = totalAmount - sum;
                 }
             }
@@ -178,11 +182,13 @@ namespace KMPAccounting.AccountImporting
                 }
             }
 
+            var counterAccountsPrefixAsPath = new AccountPath(counterAccountsPrefix);
+
             for (var index = 0; index < counterAccounts.Length; index++)
             {
                 var counterAccount = counterAccounts[index];
                 var parts = counterAccount.Split(':', StringSplitOptions.TrimEntries);
-                yield return (counterAccountsPrefix + parts[0], amounts[index]!.Value);
+                yield return (counterAccountsPrefixAsPath + parts[0], amounts[index]!.Value);
             }
         }
     }
