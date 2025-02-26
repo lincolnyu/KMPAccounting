@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using KMPCommon;
 
 namespace KMPAccounting.AccountImporting
 {
