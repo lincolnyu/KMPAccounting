@@ -1,11 +1,11 @@
-﻿using KMPAccounting.AccountImporting;
+﻿using KMPAccounting.Importing;
 using KMPAccounting.Objects;
 using KMPAccounting.Objects.AccountCreation;
 using KMPAccounting.Objects.Accounts;
 using KMPAccounting.Objects.BookKeeping;
 using KMPAccounting.ReportSchemes;
 using static KMPAccounting.Objects.AccountHelper;
-using Transaction = KMPAccounting.AccountImporting.Transaction;
+using Transaction = KMPAccounting.Importing.Transaction;
 
 namespace KMPAccounting.Console;
 

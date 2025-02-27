@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using KMPAccounting.Objects.AccountCreation;
 
-namespace KMPAccounting.AccountImporting
+namespace KMPAccounting.Importing
 {
     public class CsvImporter
     {

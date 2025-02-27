@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using KMPCommon;
-using static KMPAccounting.AccountImporting.CsvImporter;
 
-namespace KMPAccounting.AccountImporting
+namespace KMPAccounting.Importing
 {
+    using static CsvImporter;
+
     public class CsvExporter
     {
         public static void Export(StreamWriter sw, IEnumerable<Transaction> transactions, CsvDescriptor descriptor, string[] header, string counterAccountsPrefix)
