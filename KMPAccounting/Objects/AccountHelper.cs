@@ -10,6 +10,14 @@ namespace KMPAccounting.Objects
 {
     public static class AccountHelper
     {
+        public enum SideOptionEnum
+        {
+            SameAsParent,
+            OnlyLeafOppositeToParent,
+            AllCredit,
+            AllDebit
+        }
+
         public static AccountNode? GetStateNode(string accountFullName)
         {
             var split = accountFullName.Split('.', 2);
@@ -62,8 +70,8 @@ namespace KMPAccounting.Objects
         public static void ReckonAccountsIntoTarget(IEnumerable<AccountNode> sources, string target,
             out List<(string, decimal)> toDebit, out List<(string, decimal)> toCredit)
         {
-            toDebit = new List<(string, decimal)>();
-            toCredit = new List<(string, decimal)>();
+            toDebit = [];
+            toCredit = [];
             var netDebited = 0m;
             foreach (var leaf in sources)
             {
@@ -146,17 +154,6 @@ namespace KMPAccounting.Objects
             {
                 yield return root;
             }
-        }
-
-
-
-
-        public enum SideOptionEnum
-        {
-            SameAsParent,
-            OnlyLeafOppositeToParent,
-            AllCredit,
-            AllDebit
         }
 
         public static Func<string[], int, SideEnum, SideEnum> GetChooseSideFunc(SideOptionEnum option)
