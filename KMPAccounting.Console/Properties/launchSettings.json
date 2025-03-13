@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "KMPAccounting.Console": {
-      "commandName": "Project",
-      "commandLineArgs": "balance --root Family --input C:\\Users\\quanb\\OneDrive\\tagged\\store\\2402012306\\testdata\\FY24\\input\\initialbalance.txt --output --output C:\\Users\\quanb\\OneDrive\\tagged\\store\\2402012306\\testdata\\FY24\\output\\initialbalance.txt"
-    }
-  }
-}

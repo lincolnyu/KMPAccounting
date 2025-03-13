@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using KMPAccounting.Accounting;
 using KMPAccounting.Importing;
 using KMPAccounting.Objects;
 using KMPAccounting.Objects.AccountCreation;
@@ -100,11 +101,49 @@ internal class Program
 
                     Merge(inputFiles, outputFile);
                     break;
+                case "writebalance":
+                    if (stateName == null || inputFiles.Count != 1 || outputFile == null)
+                    {
+                        ShowUsage();
+                        return;
+                    }
+
+                    WriteBalance(stateName, inputFiles[0], outputFile);
+                    break;
             }
         }
         catch (Exception ex)
         {
             System.Console.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+
+    private static void WriteBalance(string root, string inputFile, string outputFile)
+    {
+        Ledger ledger = new();
+        {
+            using var srLedger = new StreamReader(inputFile);
+            var line = srLedger.ReadLine(); // Skip the first line 
+            var indentedRemarks = false;
+            if (line == null)
+            {
+                return;
+            }
+            if (line.StartsWith("IndentedRemarks="))
+                indentedRemarks = line.Substring("IndentedRemarks=".Length) == "true";
+            ledger.DeserializeFromStream(srLedger, indentedRemarks);
+            ledger.Execute(0, ledger.Entries.Count);
+        }
+
+        {
+            if (GetAccount(root) is not AccountsRoot book)
+            {
+                System.Console.WriteLine($"Error: Root account {root} not found.");
+                return;
+            }
+
+            using var sw = new StreamWriter(outputFile);
+            sw.Write(book.ToString(2));
         }
     }
 
@@ -116,6 +155,8 @@ internal class Program
             "       balance --root <root> --input <inputfile> --output <outputfile>");
         System.Console.WriteLine(
             "       merge --input <inputfile1> [--input <inputfile2> ...] --output <outputfile>");
+        System.Console.WriteLine(
+            "       writebalance --root <root> --input <ledgerfile> --output <balancefile>");
     }
 
     private static void LoadBalance(string stateName, string inputFile, int tabSize, string outputFile)
@@ -127,7 +168,7 @@ internal class Program
         var accountCreationDate = DateTime.MinValue;
 
         List<string> currentAccountNamePath = [];
-        bool isCredit = false;
+        var isCredit = false;
 
         var debited = new List<(string, decimal)>();
         var credited = new List<(string, decimal)>();
@@ -145,7 +186,7 @@ internal class Program
             if (line.TrimEnd().Equals("Remarks:", StringComparison.InvariantCultureIgnoreCase))
             {
                 remarks = srBalance.ReadToEnd();
-                return;
+                break;
             }
 
             var spaceCount = line.TakeWhile(char.IsWhiteSpace).Count();
@@ -163,21 +204,19 @@ internal class Program
                 isCredit = true;
                 continue;
             }
+
             if (name == "Debit")
             {
                 isCredit = false;
                 continue;
             }
 
-            var level = spaceCount / tabSize - 1;   // Credit/Debit is at level 0
+            var level = spaceCount / tabSize - 1; // Credit/Debit is at level 0
 
             var flagIndex = name.IndexOf('(');
-            if (flagIndex >= 0)
-            {
-                name = name[..flagIndex];
-            }
+            if (flagIndex >= 0) name = name[..flagIndex];
 
-            decimal? currentAmount = parsed.Length > 1? decimal.Parse(parsed[1]) : null;
+            decimal? currentAmount = parsed.Length > 1 ? decimal.Parse(parsed[1]) : null;
 
             if (level < currentAccountNamePath.Count)
             {
@@ -242,6 +281,7 @@ internal class Program
                     $"Error: Amount not specified for account {accountName}.");
                 return;
             }
+
             var amount = lastAmount.Value;
             if (isCredit)
             {

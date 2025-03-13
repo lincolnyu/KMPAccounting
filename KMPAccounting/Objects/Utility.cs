@@ -14,81 +14,56 @@ namespace KMPAccounting.Objects
             var j = 0;
             var addedAccount = new HashSet<string>();
 
-            while (true)
+            while (i < ledger.Entries.Count && j < sourceLedger.Entries.Count)
             {
                 var target = ledger.Entries[i];
                 var source = sourceLedger.Entries[j];
 
-                if (target.DateTime < source.DateTime)
-                {
-                    // Pass the target.
-
-                    CheckOpenAccountAndReturnIfAlreadyAdded(target);
-                    ++i;
-                    if (i == ledger.Entries.Count)
-                    {
-                        ledger.Entries.AddRange(sourceLedger.Entries.GetRange(j, sourceLedger.Entries.Count - j)
-                            .Where(CheckOpenAccountAndReturnIfAlreadyAdded));
-                        return;
-                    }
-                }
-                else if (target.DateTime > source.DateTime)
+                if (target.DateTime > source.DateTime)
                 {
                     // Insert the source.
-
-                    if (CheckOpenAccountAndReturnIfAlreadyAdded(source))
+                    if (IsNotOpeningAlreadyAddedAccount(source))
                     {
                         ledger.Entries.Insert(i, source);
                         ++i;
                     }
-
                     ++j;
-                    if (j == sourceLedger.Entries.Count)
-                    {
-                        return;
-                    }
                 }
                 else
                 {
-                    // Insert the source.
-
-                    var canAdd = CheckOpenAccountAndReturnIfAlreadyAdded(source);
-                    if (target.Equals(source))
+                    // Prioritize the target.
+                    if (IsNotOpeningAlreadyAddedAccount(target))
                     {
                         ++i;
                     }
-                    else if (canAdd)
+                    else
                     {
-                        ledger.Entries.Insert(i + 1, source);
-                        i += 2;
+                        ledger.Entries.RemoveAt(i);
                     }
-
-                    ++j;
-
-                    if (i == ledger.Entries.Count)
+                    if (target.Equals(source))
                     {
-                        ledger.Entries.AddRange(sourceLedger.Entries.GetRange(j, sourceLedger.Entries.Count - j));
-                        return;
-                    }
-
-                    if (j == sourceLedger.Entries.Count)
-                    {
-                        return;
+                        ++j;
                     }
                 }
             }
 
-            bool CheckOpenAccountAndReturnIfAlreadyAdded(Entry entry)
+            for (; i < ledger.Entries.Count; i++)
             {
-                if (entry is OpenAccount openAccount)
+                if (!IsNotOpeningAlreadyAddedAccount(ledger.Entries[i]))
                 {
-                    if (!addedAccount.Add(openAccount.FullName))
-                    {
-                        return false;
-                    }
+                    ledger.Entries.RemoveAt(i);
+                    --i;
                 }
+            }
 
-                return true;
+            if (j < sourceLedger.Entries.Count)
+            {
+                ledger.Entries.AddRange(sourceLedger.Entries.GetRange(j, sourceLedger.Entries.Count - j).Where(IsNotOpeningAlreadyAddedAccount));
+            }
+
+            bool IsNotOpeningAlreadyAddedAccount(Entry entry)
+            {
+                return entry is not OpenAccount openAccount || addedAccount.Add(openAccount.FullName);
             }
         }
     }
