@@ -118,7 +118,7 @@ namespace KMPAccounting.Importing
         private static IEnumerable<(string, decimal)> ParseCounterAccounts(string counterAccountsValue,
             decimal totalAmount, string counterAccountsPrefix)
         {
-            var counterAccounts = counterAccountsValue.Split(';');
+            var counterAccounts = counterAccountsValue.Split(Transaction.AccountsDelimiter);
 
             decimal?[] amounts = new decimal?[counterAccounts.Length];
             var sum = 0m;
@@ -126,7 +126,7 @@ namespace KMPAccounting.Importing
             for (var index = 0; index < counterAccounts.Length; index++)
             {
                 var counterAccount = counterAccounts[index];
-                var parts = counterAccount.Split(':', StringSplitOptions.TrimEntries);
+                var parts = counterAccount.Split(Transaction.AccountValuePairDelimiter, StringSplitOptions.TrimEntries);
                 if (parts.Length == 2)
                 {
                     decimal? amount;
@@ -187,7 +187,7 @@ namespace KMPAccounting.Importing
             for (var index = 0; index < counterAccounts.Length; index++)
             {
                 var counterAccount = counterAccounts[index];
-                var parts = counterAccount.Split(':', StringSplitOptions.TrimEntries);
+                var parts = counterAccount.Split(Transaction.AccountValuePairDelimiter, StringSplitOptions.TrimEntries);
                 yield return (counterAccountsPrefixAsPath + parts[0], amounts[index]!.Value);
             }
         }

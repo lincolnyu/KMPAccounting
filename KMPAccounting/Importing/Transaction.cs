@@ -7,6 +7,10 @@ namespace KMPAccounting.Importing
 {
     public class Transaction
     {
+        public const char AccountsDelimiter = ';';
+
+        public const char AccountValuePairDelimiter = '=';
+
         public string? Description { get; set; }
 
         public decimal Amount { get; set; }
@@ -28,7 +32,7 @@ namespace KMPAccounting.Importing
             if (CounterAccounts.Count > 1)
             {
                 SetFieldAtOrAdd(descriptor.IndexOfCounterAccounts,
-                    string.Join(";", CounterAccounts.Select(x => $"{x.Item1}:{x.Item2}")));
+                    string.Join(AccountsDelimiter, CounterAccounts.Select(x => $"{x.Item1}{AccountValuePairDelimiter}{x.Item2}")));
             }
             else if (CounterAccounts.Count == 1)
             {
