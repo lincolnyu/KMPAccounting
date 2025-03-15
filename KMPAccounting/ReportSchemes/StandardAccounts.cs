@@ -33,7 +33,7 @@ namespace KMPAccounting.ReportSchemes
         public static bool GetAccountIsCredit(AccountPath accountFullName)
         {
             var typeName = accountFullName[1];
-            return typeName.StartsWith(Income) || typeName.StartsWith(TaxReturn) || typeName.StartsWith(TaxWithheld);
+            return !typeName.StartsWith(Assets);
         }
     }
 }

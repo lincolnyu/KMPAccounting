@@ -263,9 +263,7 @@ internal class Program
             if (!addedAccounts.Contains(accountName))
             {
                 ledger.EnsureCreateAccount(accountCreationDate, accountName,
-                    GetChooseSideFunc(isCredit
-                        ? SideOptionEnum.AllCredit
-                        : SideOptionEnum.AllDebit));
+                    GetChooseSideFunc(isCredit ? SideOptionEnum.AllCredit : SideOptionEnum.AllDebit));
                 addedAccounts.Add(accountName);
             }
             else
@@ -350,7 +348,7 @@ internal class Program
                 {
                     var isCounterAccountCredit = StandardAccounts.GetAccountIsCredit(counterAccount);
                     ledger.EnsureCreateAccount(accountCreationDate, counterAccount,
-                        GetChooseSideFunc(isCounterAccountCredit ? SideOptionEnum.AllDebit : SideOptionEnum.AllCredit));
+                        GetChooseSideFunc(isCounterAccountCredit ? SideOptionEnum.AllCredit : SideOptionEnum.AllDebit));
                     addedAccount.Add(counterAccount);
                     Debug.Assert(GetAccount(counterAccount)!.Balance == 0);
                 }
