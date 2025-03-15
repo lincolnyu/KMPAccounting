@@ -14,11 +14,16 @@ namespace KMPAccounting.Objects.Serialization
 
         public static void SerializeIndentedRemarks(StringBuilder sb, string remarks, int indentSize)
         {
-            foreach (var line in remarks.Split('\n'))
+            var split = remarks.Split('\n');
+            for (var index = 0; index < split.Length; index++)
             {
+                var line = split[index];
                 sb.Append(' ', indentSize);
                 sb.Append(line);
-                sb.Append('\n');
+                if (index < split.Length - 1)
+                {
+                    sb.Append('\n');
+                }
             }
         }
 

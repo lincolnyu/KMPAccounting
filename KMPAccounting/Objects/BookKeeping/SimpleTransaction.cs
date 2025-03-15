@@ -122,7 +122,7 @@ namespace KMPAccounting.Objects.BookKeeping
             {
                 Remarks = line.GetNextWord('|', p, out _, out string? remarks)
                     ? SerializationHelper.DeserializeRemarks(remarks!)
-                    : string.Empty
+                    : null
             };
         }
 

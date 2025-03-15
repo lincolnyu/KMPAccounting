@@ -163,7 +163,7 @@ namespace KMPAccounting.Objects.BookKeeping
 
             if (line.GetNextWord('|', p, out _, out string? remarks))
             {
-                pt.Remarks = remarks;
+                pt.Remarks = SerializationHelper.DeserializeRemarks(remarks!);
             }
 
             return pt;
@@ -193,11 +193,13 @@ namespace KMPAccounting.Objects.BookKeeping
                 sb.Append('|');
             }
 
-            if (Remarks != null)
+            if (Remarks is not null)
             {
                 if (indentedRemarks)
                 {
+                    sb.Append('\n');
                     SerializationHelper.SerializeIndentedRemarks(sb, Remarks, 1);
+                    sb.Append('\n');
                 }
                 else
                 {
@@ -205,8 +207,10 @@ namespace KMPAccounting.Objects.BookKeeping
                     sb.Append('|');
                 }
             }
-
-            sb.Append('\n');
+            else
+            {
+                sb.Append('\n');
+            }
         }
 
         public override string ToString()

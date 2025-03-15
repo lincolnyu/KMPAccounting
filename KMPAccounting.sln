@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KMPCommon", "KMPCommon\KMPC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KMPAccounting.Console", "KMPAccounting.Console\KMPAccounting.Console.csproj", "{9EF1090D-4779-444D-A7EB-949962C733AB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KMPAccounting.Testing", "KMPAccounting.Testing\KMPAccounting.Testing.csproj", "{F6D48858-1289-4A4F-BE01-C5BDD71DA6EC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{9EF1090D-4779-444D-A7EB-949962C733AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9EF1090D-4779-444D-A7EB-949962C733AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9EF1090D-4779-444D-A7EB-949962C733AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6D48858-1289-4A4F-BE01-C5BDD71DA6EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6D48858-1289-4A4F-BE01-C5BDD71DA6EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6D48858-1289-4A4F-BE01-C5BDD71DA6EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6D48858-1289-4A4F-BE01-C5BDD71DA6EC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
