@@ -5,9 +5,52 @@ namespace KMPAccounting.Objects.Serialization
 {
     public static class SerializationHelper
     {
-        public static readonly int IndentedSize = 2;
+        public static readonly int StandardIndentationSize = 1;
 
-        public static string SerializeRemarks(string remarks)
+        /// <summary>
+        ///  Serialize the remarks excluding the ending '\n' which is the caller's responsibility to add.
+        /// </summary>
+        /// <param name="sb">The string builder for the output.</param>
+        /// <param name="remarks">The remarks</param>
+        /// <param name="indented">If it is the indented mode.</param>
+        public static void SerializeRemarks(this StringBuilder sb, string? remarks, bool indented)
+        {
+            if (remarks is not null)
+            {
+                if (indented)
+                {
+                    if (remarks == string.Empty)
+                    {
+                        sb.Append('|');
+                    }
+                    else
+                    {
+                        sb.Append('\n');
+                        SerializationHelper.SerializeIndentedRemarks(sb, remarks, StandardIndentationSize);
+                    }
+                }
+                else
+                {
+                    sb.Append($"{SerializationHelper.SerializeUnindentedRemarks(remarks)}");
+                    sb.Append('|');
+                }
+            }
+        }
+
+        public static string? DeserializeRemarks(string remainingLine, LineLoader ll, bool indented)
+        {
+            if (indented && string.IsNullOrWhiteSpace(remainingLine))
+            {
+                return DeserializeIndentedRemarks(ll, StandardIndentationSize);
+            }
+            else
+            {
+                return string.IsNullOrWhiteSpace(remainingLine) ? 
+                    null : DeserializeUnindentedRemarks(remainingLine);
+            }
+        }
+
+        public static string SerializeUnindentedRemarks(string remarks)
         {
             return remarks.Replace(@"\", @"\\").Replace("\n", @"\n").Replace("|", @"\|");
         }
@@ -27,53 +70,58 @@ namespace KMPAccounting.Objects.Serialization
             }
         }
 
-        public static string DeserializeIndentedRemarks(LineLoader lineLoader, int indentedSize)
+        public static string? DeserializeIndentedRemarks(LineLoader lineLoader, int indentationSize)
         {
-            var indentation = new string(' ', indentedSize);
-            var sb = new StringBuilder();
+            var indentation = new string(' ', indentationSize);
+            StringBuilder? sb = null;
             while (true)
             {
                 var line = lineLoader.PeekLine();
-                // End of stream.
-                if (line == null)
+                // End of stream or next record (tolerant with any line that has nonzero indentation)
+                if (line == null || line.Length > 0 && line[0] != ' ')
                 {
+                    if (sb is null)
+                    {
+                        return null;
+                    }
                     break;
                 }
 
-                if (line.Length > 0 && line[0] != ' ')
+                if (sb is null)
                 {
-                    break;
+                    // first line
+                    sb = new StringBuilder();
                 }
-                // Tolerant with any line that has nonzero indention.
+                else
+                {
+                    sb.Append('\n');
+                }
 
                 lineLoader.ReadLine(); // Consume the line.
 
-                if (line.Length > indentedSize && line.StartsWith(indentation))
+                if (line.Length > indentationSize && line.StartsWith(indentation))
                 {
-                    sb.Append(line[indentedSize..]);
+                    sb.Append(line[indentationSize..]);
                 }
                 else
                 {
                     sb.Append(line.TrimStart());
                 }
-
-                sb.Append('\n');
-            }
-
-            if (sb.Length > 0)
-            {
-                sb.Length -= 1; // Remove the last '\n'.
             }
 
             return sb.ToString();
         }
 
-        public static string DeserializeRemarks(string serializedRemarks)
+        public static string DeserializeUnindentedRemarks(string serializedRemarks)
         {
             var sb = new StringBuilder();
             var i = 0;
             while (i < serializedRemarks.Length)
             {
+                if (serializedRemarks[i] == '|')
+                {
+                    break;
+                }
                 if (serializedRemarks[i] == '\\')
                 {
                     if (i + 1 < serializedRemarks.Length)

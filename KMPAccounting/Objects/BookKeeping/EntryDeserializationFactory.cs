@@ -1,5 +1,5 @@
-﻿using KMPCommon;
-using System;
+﻿using System;
+using KMPCommon;
 using KMPAccounting.Objects.Serialization;
 
 namespace KMPAccounting.Objects.BookKeeping
@@ -31,17 +31,11 @@ namespace KMPAccounting.Objects.BookKeeping
 
             Entry entry = type switch
             {
-                "CompositeTransaction" => CompositeTransaction.ParseLine(timestamp, payload),
-                "Transaction" => SimpleTransaction.ParseLine(timestamp, payload),
+                "CompositeTransaction" => CompositeTransaction.ParseLine(timestamp, payload, lineLoader, indentedRemarks),
+                "Transaction" => SimpleTransaction.ParseLine(timestamp, payload, lineLoader, indentedRemarks),
                 "OpenAccount" => OpenAccount.ParseLine(timestamp, payload),
                 _ => throw new ArgumentException($"Unknown entry type {type}"),
             };
-
-            if (indentedRemarks)
-            {
-                entry.Remarks =
-                    SerializationHelper.DeserializeIndentedRemarks(lineLoader, SerializationHelper.IndentedSize);
-            }
 
             return entry;
         }

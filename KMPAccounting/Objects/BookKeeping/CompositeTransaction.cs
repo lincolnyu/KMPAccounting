@@ -1,9 +1,9 @@
-﻿using KMPAccounting.Objects.Accounts;
-using KMPAccounting.Objects.Serialization;
-using KMPCommon;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using KMPAccounting.Objects.Accounts;
+using KMPAccounting.Objects.Serialization;
+using KMPCommon;
 
 namespace KMPAccounting.Objects.BookKeeping
 {
@@ -119,7 +119,7 @@ namespace KMPAccounting.Objects.BookKeeping
             }
         }
 
-        public static CompositeTransaction ParseLine(DateTime dateTime, string line)
+        public static CompositeTransaction ParseLine(DateTime dateTime, string line, LineLoader ll, bool remarksIndented)
         {
             var pt = new CompositeTransaction(dateTime);
 
@@ -161,10 +161,7 @@ namespace KMPAccounting.Objects.BookKeeping
                 }
             }
 
-            if (line.GetNextWord('|', p, out _, out string? remarks))
-            {
-                pt.Remarks = SerializationHelper.DeserializeRemarks(remarks!);
-            }
+            pt.Remarks = SerializationHelper.DeserializeRemarks(line.Substring(p), ll, remarksIndented);
 
             return pt;
         }
@@ -193,24 +190,9 @@ namespace KMPAccounting.Objects.BookKeeping
                 sb.Append('|');
             }
 
-            if (Remarks is not null)
-            {
-                if (indentedRemarks)
-                {
-                    sb.Append('\n');
-                    SerializationHelper.SerializeIndentedRemarks(sb, Remarks, 1);
-                    sb.Append('\n');
-                }
-                else
-                {
-                    sb.Append($"{SerializationHelper.SerializeRemarks(Remarks)}");
-                    sb.Append('|');
-                }
-            }
-            else
-            {
-                sb.Append('\n');
-            }
+            sb.SerializeRemarks(Remarks, indentedRemarks);
+
+            sb.Append('\n');    // Ending '\n' to new line to the next record 
         }
 
         public override string ToString()

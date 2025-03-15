@@ -97,7 +97,7 @@ namespace KMPAccounting.Objects.BookKeeping
             }
         }
 
-        public static SimpleTransaction ParseLine(DateTime dateTime, string line)
+        public static SimpleTransaction ParseLine(DateTime dateTime, string line, LineLoader ll, bool remarksIndented)
         {
             int p = 0;
 
@@ -117,12 +117,12 @@ namespace KMPAccounting.Objects.BookKeeping
 
             var amount = decimal.Parse(amountStr);
 
+            var remarks = SerializationHelper.DeserializeRemarks(line.Substring(p), ll, remarksIndented);
+
             return new SimpleTransaction(dateTime, new AccountNodeReference(debitedAccountName),
                 new AccountNodeReference(creditedAccountName), amount)
             {
-                Remarks = line.GetNextWord('|', p, out _, out string? remarks)
-                    ? SerializationHelper.DeserializeRemarks(remarks!)
-                    : null
+                Remarks = remarks
             };
         }
 
@@ -141,24 +141,9 @@ namespace KMPAccounting.Objects.BookKeeping
             sb.Append(Amount);
             sb.Append("|");
 
-            if (!string.IsNullOrEmpty(Remarks))
-            {
-                if (indentedRemarks)
-                {
-                    sb.Append('\n');
-                    SerializationHelper.SerializeIndentedRemarks(sb, Remarks, 1);
-                }
-                else
-                {
-                    sb.Append($"{SerializationHelper.SerializeRemarks(Remarks)}");
-                    sb.Append("|");
-                    sb.Append('\n');
-                }
-            }
-            else
-            {
-                sb.Append('\n');
-            }
+            sb.SerializeRemarks(Remarks, indentedRemarks);
+
+            sb.Append('\n');    // Ending '\n' to new line to the next record
         }
 
         public override string ToString()
