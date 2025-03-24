@@ -364,6 +364,7 @@ internal class Program
 
             var balance = transaction.Balance;
 
+            var amountWasNegative = amount < 0;
             // Note: Assuming credit account amounts and balances are negative
             if (isCredit)
             {
@@ -379,8 +380,25 @@ internal class Program
             {
                 if (counterAccounts.Count > 1)
                 {
-                    var composite = CreateTransaction(date, [(mainAccount, absAmount)], counterAccounts,
+                    List<(string, decimal)> debited = [(mainAccount, absAmount)];
+                    List<(string, decimal)> credited = [];
+
+                    foreach (var (account, counterAmount) in counterAccounts)
+                    {
+                        // If the sign is the same the counter account is indeed on the counter side
+                        if ((counterAmount < 0) == amountWasNegative)
+                        {
+                            credited.Add((account, Math.Abs(counterAmount)));
+                        }
+                        else
+                        {
+                            debited.Add((account, Math.Abs(counterAmount)));
+                        }
+                    }
+
+                    var composite = CreateTransaction(date, debited, credited,
                         transaction.Description);
+
                     ledger.AddAndExecute(composite);
                 }
                 else
@@ -393,7 +411,23 @@ internal class Program
             {
                 if (counterAccounts.Count > 1)
                 {
-                    var composite = CreateTransaction(date, counterAccounts, [(mainAccount, absAmount)],
+                    List<(string, decimal)> debited = [];
+                    List<(string, decimal)> credited = [(mainAccount, absAmount)];
+
+                    foreach (var (account, counterAmount) in counterAccounts)
+                    {
+                        // If the sign is the same the counter account is indeed on the counter side
+                        if ((counterAmount < 0) == amountWasNegative)
+                        {
+                            debited.Add((account, Math.Abs(counterAmount)));
+                        }
+                        else
+                        {
+                            credited.Add((account, Math.Abs(counterAmount)));
+                        }
+                    }
+
+                    var composite = CreateTransaction(date, debited, credited,
                         transaction.Description);
                     ledger.AddAndExecute(composite);
                 }
