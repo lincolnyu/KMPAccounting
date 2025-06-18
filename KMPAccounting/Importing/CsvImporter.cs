@@ -73,7 +73,6 @@ namespace KMPAccounting.Importing
         public static IEnumerable<Transaction> Import(StreamReader sr, CsvDescriptor descriptor,
             string counterAccountsPrefix, bool keepAllFields)
         {
-            decimal? previousBalance = null;
             while (!sr.EndOfStream)
             {
                 var line = sr.GetAndBreakRow(true).ToArray();
@@ -93,13 +92,6 @@ namespace KMPAccounting.Importing
                         : null;
 
                 var amount = ParseAmount(line[descriptor.IndexOfAmount]);
-
-                //if (balance is null && amount is not null && previousBalance is not null)
-                //{
-                //    // Balance is inferred from previous
-                //    balance = previousBalance.Value + amount;
-                //}
-                //previousBalance = balance;
 
                 if (!DateTime.TryParse(line[descriptor.IndexOfDate], out var date))
                 {
