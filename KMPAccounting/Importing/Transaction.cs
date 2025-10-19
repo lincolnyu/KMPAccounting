@@ -26,17 +26,43 @@ namespace KMPAccounting.Importing
         public void UpdateToFields(CsvImporter.CsvDescriptor descriptor)
         {
             SetFieldAtOrAdd(descriptor.IndexOfAmount, Amount.ToString(CultureInfo.InvariantCulture));
+
             SetFieldAtOrAdd(descriptor.IndexOfDate, Date.ToShortDateString());
-            SetFieldAtOrAdd(descriptor.IndexOfDescription, Description ?? "");
-            SetFieldAtOrAdd(descriptor.IndexOfBalance, Balance?.ToString(CultureInfo.InvariantCulture) ?? "");
-            if (CounterAccounts.Count > 1)
+
+            if (Description is not null)
             {
-                SetFieldAtOrAdd(descriptor.IndexOfCounterAccounts,
-                    string.Join(AccountsDelimiter, CounterAccounts.Select(x => $"{x.Item1}{AccountValuePairDelimiter}{x.Item2}")));
+                if (descriptor.IndexOfDescription < 0)
+                {
+                    throw new ArgumentException("Descriptor does not have Description index defined but description is set in the transaction.");
+                }
+                SetFieldAtOrAdd(descriptor.IndexOfDescription, Description);
             }
-            else if (CounterAccounts.Count == 1)
+
+            if (Balance.HasValue)
             {
-                SetFieldAtOrAdd(descriptor.IndexOfCounterAccounts, CounterAccounts[0].Item1);
+                if (descriptor.IndexOfBalance < 0)
+                {
+                    throw new ArgumentException("Descriptor does not have Balance index defined but balance is set in the transaction.");
+                }
+                SetFieldAtOrAdd(descriptor.IndexOfBalance, Balance.Value.ToString(CultureInfo.InvariantCulture));
+            }
+
+            if (CounterAccounts.Count > 0)
+            {
+                var index = descriptor.IndexOfCounterAccounts;
+                if (index < 0)
+                {
+                    throw new ArgumentException($"Descriptor does not have CounterAccounts index defined but with counter accounts: '{CounterAccounts[0].Item1}', ...");
+                }
+
+                if (CounterAccounts.Count > 1)
+                {
+                    SetFieldAtOrAdd(index, string.Join(AccountsDelimiter, CounterAccounts.Select(x => $"{x.Item1}{AccountValuePairDelimiter}{x.Item2}")));
+                }
+                else /*CounterAccounts.Count == 1*/
+                {
+                    SetFieldAtOrAdd(index, CounterAccounts[0].Item1);
+                }
             }
         }
 
@@ -45,6 +71,11 @@ namespace KMPAccounting.Importing
             while (index >= Fields.Count)
             {
                 Fields.Add("");
+            }
+
+            if (index < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), $"Index cannot be negative ({index})");
             }
 
             Fields[index] = val;

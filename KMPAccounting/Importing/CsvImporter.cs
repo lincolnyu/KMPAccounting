@@ -73,7 +73,7 @@ namespace KMPAccounting.Importing
         public static IEnumerable<Transaction> Import(StreamReader sr, CsvDescriptor descriptor,
             string counterAccountsPrefix, bool keepAllFields)
         {
-            decimal? previousBalance = null;
+            //decimal? previousBalance = null;
             while (!sr.EndOfStream)
             {
                 var line = sr.GetAndBreakRow(true).ToArray();
