@@ -12,7 +12,7 @@ namespace KMPAccounting.ReportSchemes
     public class AccountsSetup
     {
         /// <summary>
-        ///  Suffix following Assets.Cash in the name of the account for tax return, with leading dot.
+        ///  Suffix following Asset.Cash in the name of the account for tax return, with leading dot.
         /// </summary>
         public string? TaxReturnCashAccount { get; set; }
 

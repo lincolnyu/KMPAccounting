@@ -4,11 +4,11 @@ namespace KMPAccounting.ReportSchemes
 {
     public static class StandardAccounts
     {
-        public const string Assets = "Assets";
+        public const string Asset = "Asset";
         public const string Equity = "Equity";
         public const string Liability = "Liability";
 
-        public const string Cash = "Assets.Cash";
+        public const string Cash = "Asset.Cash";
 
         public const string Income = "Income";                              // Credit
         public const string TaxReturn = "TaxReturn";                        // Credit
@@ -33,7 +33,7 @@ namespace KMPAccounting.ReportSchemes
         public static bool GetAccountIsCredit(AccountPath accountFullName)
         {
             var typeName = accountFullName[1];
-            return !typeName.StartsWith(Assets);
+            return !typeName.StartsWith(Asset);
         }
     }
 }
