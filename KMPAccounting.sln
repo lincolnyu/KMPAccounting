@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.12.35506.116
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11222.15 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KMPAccounting", "KMPAccounting\KMPAccounting.csproj", "{A7D5F15A-AB95-4E0B-8A1B-65AC8F437D9C}"
 EndProject
@@ -10,6 +10,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KMPAccounting.Console", "KMPAccounting.Console\KMPAccounting.Console.csproj", "{9EF1090D-4779-444D-A7EB-949962C733AB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KMPAccounting.Testing", "KMPAccounting.Testing\KMPAccounting.Testing.csproj", "{F6D48858-1289-4A4F-BE01-C5BDD71DA6EC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "KMPAccounting.Tools", "KMPAccounting.Tools", "{C3D29E8A-BAA2-477D-9A19-F2F47581C61A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CbaStatementToCsv", "KMPAccounting.Tools\CbaStatementToCsv\CbaStatementToCsv.csproj", "{79F23CB4-788B-5F44-B6B9-1BAE25D9962A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,8 +37,18 @@ Global
 		{F6D48858-1289-4A4F-BE01-C5BDD71DA6EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6D48858-1289-4A4F-BE01-C5BDD71DA6EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6D48858-1289-4A4F-BE01-C5BDD71DA6EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79F23CB4-788B-5F44-B6B9-1BAE25D9962A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79F23CB4-788B-5F44-B6B9-1BAE25D9962A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79F23CB4-788B-5F44-B6B9-1BAE25D9962A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79F23CB4-788B-5F44-B6B9-1BAE25D9962A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{79F23CB4-788B-5F44-B6B9-1BAE25D9962A} = {C3D29E8A-BAA2-477D-9A19-F2F47581C61A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F31C8825-C794-4C29-827A-56540A838EB5}
 	EndGlobalSection
 EndGlobal

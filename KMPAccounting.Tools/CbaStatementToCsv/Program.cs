@@ -17,10 +17,10 @@ using var writer = new StreamWriter(outputFile);
 
 writer.WriteLine("Date,Amount,Description");
 
+int totalProcessedRows = 0;
 int totalFailedLines = 0;
-int totalLines = 0;
 string? line;
-while ((line = reader.ReadLine()) != null)
+for (int lineIndex = 0; (line = reader.ReadLine()) != null; lineIndex++)
 {
     line = line.Trim();
 
@@ -50,25 +50,23 @@ while ((line = reader.ReadLine()) != null)
     // parse the amountStr into decimal, note the amountStr may include commas as thousands separator
     if (!decimal.TryParse(amountStr, System.Globalization.NumberStyles.AllowThousands | System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out decimal amount))
     {
-        Console.WriteLine($"Line {totalLines+1}: Failed to parse amount: {amountStr}");
+        Console.WriteLine($"Line {lineIndex+1}: Failed to parse amount: {amountStr}");
         totalFailedLines++;
-        totalLines++;
         continue;
     }
 
-    // dateStr is in format like '09 Feb', convert it to dd/MM/yyyy where the year is the current year.
-    if (DateTime.TryParseExact(dateStr + " " + year, "dd MMM yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime date))
+    if (DateTime.TryParseExact(dateStr + " " + year, "dd MMM yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime date))
     {
         string formattedDate = date.ToString("dd/MM/yyyy");
         // The amount needs to be negated.
         writer.WriteLine($"{formattedDate},{-amount},\"{descriptionStr}\"");
+        totalProcessedRows++;
     }
     else
     {
-        Console.WriteLine($"Line {totalLines + 1}: Failed to parse date: {dateStr}");
+        Console.WriteLine($"Line {lineIndex+1}: Failed to parse date: {dateStr} (ref: {dateStr + " " + year})");
         totalFailedLines++;
     }
-    totalLines++;
 }
-Console.WriteLine($"Total lines processed: {totalLines}");
+Console.WriteLine($"Total rows imported: {totalProcessedRows}");
 Console.WriteLine($"Total lines failed: {totalFailedLines}");
