@@ -92,7 +92,7 @@ namespace KMPAccounting.Objects.Accounts
             {
                 if (Children.Count > 0)
                 {
-                    throw new InvalidOperationException("Setting balance to an aggregate account is not allowed");
+                    throw new InvalidOperationException($"Setting balance to an aggregate account {FullName} is not allowed.");
                 }
 
                 if (_balance != value)
@@ -113,7 +113,7 @@ namespace KMPAccounting.Objects.Accounts
                 {
                     if (mainNode.Children.Count > 0)
                     {
-                        throw new InvalidOperationException("Base node does not allow to have chldren.");
+                        throw new InvalidOperationException($"Base node {mainNode.Name} is not allowed to have children.");
                     }
 
                     return mainNode;
