@@ -19,6 +19,8 @@ namespace KMPAccounting.Importing
 
         public DateTime Date { get; set; }
 
+        public string? DateStr { get; set; }
+
         public List<(string, decimal)> CounterAccounts = [];
 
         public List<string> Fields = [];

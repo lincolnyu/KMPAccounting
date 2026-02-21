@@ -93,7 +93,8 @@ namespace KMPAccounting.Importing
 
                 var amount = ParseAmount(line[descriptor.IndexOfAmount]);
 
-                if (!DateTime.TryParse(line[descriptor.IndexOfDate], out var date))
+                var dateStr = line[descriptor.IndexOfDate];
+                if (!DateTime.TryParse(dateStr, out var date))
                 {
                     continue;
                 }
@@ -106,6 +107,7 @@ namespace KMPAccounting.Importing
                 var transaction = new Transaction
                 {
                     Date = date,
+                    DateStr = dateStr,
                     Description = descriptor.IndexOfDescription >= 0 && descriptor.IndexOfDescription < line.Length
                         ? line.ElementAtOrDefault(descriptor.IndexOfDescription)
                         : null,
